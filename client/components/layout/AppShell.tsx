@@ -21,7 +21,28 @@ import { Wallet, MessageSquare, Home, Settings, Users, ShoppingCart, ShieldQuest
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+import { useEffect, useState } from "react";
+
 export default function AppShell() {
+  const [me, setMe] = useState<any>(null);
+  const [numbers, setNumbers] = useState<any[]>([]);
+  useEffect(() => {
+    (async () => {
+      const r = await fetch("/api/auth/me", { credentials: "include" });
+      if (r.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      const { user } = await r.json();
+      setMe(user);
+      const n = await fetch("/api/numbers", { credentials: "include" });
+      if (n.ok) {
+        const d = await n.json();
+        setNumbers(d.numbers || []);
+      }
+    })();
+  }, []);
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -58,22 +79,26 @@ export default function AppShell() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/buy-numbers" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
-                      <Phone className="mr-2" />
-                      <span>Buy Numbers</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to="/sub-accounts" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
-                      <Users className="mr-2" />
-                      <span>Sub-Accounts</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                {me?.role === "main" && (
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/buy-numbers" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                          <Phone className="mr-2" />
+                          <span>Buy Numbers</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/sub-accounts" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                          <Users className="mr-2" />
+                          <span>Sub-Accounts</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
+                )}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/pricing" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
@@ -113,13 +138,19 @@ export default function AppShell() {
           <SidebarTrigger />
           <Link to="/" className="font-semibold">Connectlify</Link>
           <div className="ml-auto flex items-center gap-3">
-            <div className="text-sm">Wallet: <span className="font-semibold">$0.00</span></div>
+            <div className="text-sm">Wallet: <span className="font-semibold">${me?.walletBalance?.toFixed?.(2) ?? "0.00"}</span></div>
             <Select>
               <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="Select sending number" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No Numbers</SelectItem>
+                {numbers.length === 0 ? (
+                  <SelectItem value="none">No Numbers</SelectItem>
+                ) : (
+                  numbers.map((n) => (
+                    <SelectItem key={n._id} value={n.phoneNumber}>{n.phoneNumber}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <Button asChild variant="secondary" size="sm">
