@@ -20,8 +20,12 @@ export default function Login() {
   const navigate = useNavigate();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", agree: false as any } });
 
-  const onSubmit = async (_values: Values) => {
-    // Auth backend to be implemented later in the plan
+  const onSubmit = async (values: Values) => {
+    const res = await fetch("/api/auth/login", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: values.email, password: values.password }) });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Login failed");
+    }
     navigate("/dashboard");
   };
 
