@@ -1,0 +1,136 @@
+import React from "react";
+import { Link, NavLink, Outlet } from "react-router-dom";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Wallet, MessageSquare, Home, Settings, Users, ShoppingCart, ShieldQuestion, HandCoins, Phone, ListOrdered } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+export default function AppShell() {
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="px-2 py-1.5 text-sm font-semibold">Connectlify</div>
+          <SidebarSeparator />
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/dashboard" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <Home className="mr-2" />
+                      <span>Dashboard</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/conversation" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <MessageSquare className="mr-2" />
+                      <span>Conversations</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/wallet" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <HandCoins className="mr-2" />
+                      <span>Wallet</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/buy-numbers" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <Phone className="mr-2" />
+                      <span>Buy Numbers</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/sub-accounts" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <Users className="mr-2" />
+                      <span>Sub-Accounts</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/pricing" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                      <ListOrdered className="mr-2" />
+                      <span>Pricing</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink to="/privacy" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                  <ShieldQuestion className="mr-2" />
+                  <span>Privacy Policy</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink to="/terms" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                  <Settings className="mr-2" />
+                  <span>Terms & Conditions</span>
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      <SidebarInset>
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4">
+          <SidebarTrigger />
+          <Link to="/" className="font-semibold">Connectlify</Link>
+          <div className="ml-auto flex items-center gap-3">
+            <div className="text-sm">Wallet: <span className="font-semibold">$0.00</span></div>
+            <Select>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Select sending number" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Numbers</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button asChild variant="secondary" size="sm">
+              <Link to="/login">Logout</Link>
+            </Button>
+          </div>
+        </header>
+        <div className="min-h-[calc(100svh-3.5rem)]">
+          <Outlet />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
