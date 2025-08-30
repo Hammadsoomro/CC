@@ -3,7 +3,34 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
+import { useEffect, useState } from "react";
+
 export default function Wallet() {
+  const [me, setMe] = useState<any>(null);
+  const [amount, setAmount] = useState<string>("");
+  const [subs, setSubs] = useState<any[]>([]);
+  const [toSub, setToSub] = useState<string>("");
+  const [transferAmt, setTransferAmt] = useState<string>("");
+
+  const load = async () => {
+    const r = await fetch("/api/auth/me", { credentials: "include" });
+    if (r.ok) setMe((await r.json()).user);
+    const s = await fetch("/api/sub-accounts", { credentials: "include" });
+    if (s.ok) setSubs((await s.json()).subs || []);
+  };
+  useEffect(() => { load(); }, []);
+
+  const deposit = async () => {
+    const res = await fetch("/api/wallet/checkout-session", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount) }) });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
+
+  const transfer = async () => {
+    const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }) });
+    if (res.ok) { alert("Transferred"); load(); }
+  };
+
   return (
     <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
       <Card className="lg:col-span-2">
@@ -12,7 +39,7 @@ export default function Wallet() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="text-sm text-muted-foreground">Current Balance</div>
-          <div className="text-3xl font-bold">$0.00</div>
+          <div className="text-3xl font-bold">${me?.walletBalance?.toFixed?.(2) ?? "0.00"}</div>
         </CardContent>
       </Card>
       <Card>
@@ -23,17 +50,38 @@ export default function Wallet() {
           <div className="space-y-3">
             <div>
               <Label htmlFor="amount">Amount (USD)</Label>
-              <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" />
+              <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
             </div>
-            <div>
-              <Label htmlFor="card">Card</Label>
-              <Input id="card" placeholder="Visa / MasterCard" />
-            </div>
-            <Button className="w-full">Deposit</Button>
+            <Button className="w-full" onClick={deposit}>Deposit via Stripe</Button>
             <div className="text-xs text-muted-foreground">Sub-accounts cannot deposit funds.</div>
           </div>
         </CardContent>
       </Card>
+      {me?.role === "main" && (
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Transfer to Sub-Account</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <Label htmlFor="sub">Sub-Account</Label>
+              <select id="sub" className="w-full border rounded-md h-9 px-2 bg-background" value={toSub} onChange={(e) => setToSub(e.target.value)}>
+                <option value="">Select sub-account</option>
+                {subs.map((s: any) => (
+                  <option key={s._id} value={s._id}>{s.email}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="tamt">Amount</Label>
+              <Input id="tamt" type="number" min={1} step="0.01" placeholder="10.00" value={transferAmt} onChange={(e) => setTransferAmt(e.target.value)} />
+            </div>
+            <div className="md:col-span-3">
+              <Button onClick={transfer}>Transfer</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
