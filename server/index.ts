@@ -42,6 +42,7 @@ export function createServer() {
   // Account + Wallet (protected)
   app.get("/api/profile", requireAuth, accountRoutes.profileGet);
   app.post("/api/profile", requireAuth, accountRoutes.profileUpdate);
+  app.get("/api/sub-accounts", requireAuth, requireAuth, (await import("./routes/subaccounts")).listSubAccounts);
   app.post("/api/wallet/checkout-session", requireAuth, accountRoutes.createCheckoutSession);
   app.post("/api/wallet/transfer", requireAuth, accountRoutes.transferToSub);
 
