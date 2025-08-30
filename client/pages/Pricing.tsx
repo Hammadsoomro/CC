@@ -1,4 +1,3 @@
-import AppShell from "@/components/layout/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -46,25 +45,23 @@ const plans = [
 
 export default function Pricing() {
   return (
-    <AppShell>
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {plans.map((p) => (
-          <Card key={p.name}>
-            <CardHeader>
-              <CardTitle className="text-xl">{p.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{p.price}</div>
-              <ul className="mt-4 text-sm text-muted-foreground space-y-2 list-disc pl-5">
-                {p.features.map((f) => (
-                  <li key={f}>{f}</li>
-                ))}
-              </ul>
-              <Button className="mt-6 w-full">Choose</Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </AppShell>
+    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {plans.map((p) => (
+        <Card key={p.name}>
+          <CardHeader>
+            <CardTitle className="text-xl">{p.name}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{p.price}</div>
+            <ul className="mt-4 text-sm text-muted-foreground space-y-2 list-disc pl-5">
+              {p.features.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+            <Button className="mt-6 w-full">Choose</Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
