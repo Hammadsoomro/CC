@@ -7,6 +7,7 @@ import { authRoutes, requireAuth } from "./auth";
 import { numberRoutes } from "./signalwire";
 import { contactRoutes } from "./contacts";
 import { accountRoutes } from "./account";
+import { listSubAccounts } from "./routes/subaccounts";
 
 export function createServer() {
   const app = express();
