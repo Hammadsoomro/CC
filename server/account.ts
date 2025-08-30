@@ -31,13 +31,14 @@ export const accountRoutes = {
   subCreate: (async (req, res) => {
     await connectDB();
     const userId = (req as any).userId as string;
-    const { name, email, password } = req.body || {};
+    const { email, password, firstName, lastName, phone } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: "email/password required" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ error: "email already used" });
-    // For simplicity in this step, reuse main signup logic for hash via auth route soon; temp simple hash
-    // Password hashing will be delegated to auth helper in a next step
-    res.status(501).json({ error: "Not implemented" });
+    const bcrypt = await import("bcryptjs");
+    const passwordHash = await bcrypt.default.hash(password, 10);
+    const sub = await User.create({ email, passwordHash, firstName, lastName, phone, role: "sub", parentUserId: userId, walletBalance: 0 });
+    res.json({ sub: { id: sub._id, email: sub.email } });
   }) as RequestHandler,
 
   createCheckoutSession: (async (req, res) => {
