@@ -32,6 +32,7 @@ export function createServer() {
   app.get("/api/numbers/search", requireAuth, numberRoutes.search);
   app.post("/api/numbers/purchase", requireAuth, numberRoutes.purchase);
   app.get("/api/numbers", requireAuth, numberRoutes.myNumbers);
+  app.post("/api/messages/send", requireAuth, (await import("./messages")).messageRoutes.send);
   app.post("/api/numbers/assign", requireAuth, numberRoutes.assign);
   app.post("/api/numbers/unassign", requireAuth, numberRoutes.unassign);
 
