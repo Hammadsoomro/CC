@@ -31,6 +31,8 @@ export const accountRoutes = {
   subCreate: (async (req, res) => {
     await connectDB();
     const userId = (req as any).userId as string;
+    const me = await User.findById(userId).lean();
+    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can create sub-accounts" });
     const { email, password, firstName, lastName, phone } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: "email/password required" });
     const exists = await User.findOne({ email });
@@ -43,6 +45,10 @@ export const accountRoutes = {
 
   createCheckoutSession: (async (req, res) => {
     if (!stripe) return res.status(500).json({ error: "Stripe not configured" });
+    await connectDB();
+    const userId = (req as any).userId as string;
+    const me = await User.findById(userId).lean();
+    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can deposit" });
     const { amount } = req.body || {};
     const domain = `${req.protocol}://${req.get("host")}`;
     const session = await stripe.checkout.sessions.create({
