@@ -52,6 +52,8 @@ export function createServer() {
   app.patch("/api/sub-accounts/:id", requireAuth, accountRoutes.subUpdate);
   app.delete("/api/sub-accounts/:id", requireAuth, accountRoutes.subDelete);
   app.post("/api/wallet/checkout-session", requireAuth, accountRoutes.createCheckoutSession);
+  app.post("/api/wallet/payment-intent", requireAuth, accountRoutes.createPaymentIntent);
+  app.post("/api/wallet/confirm", requireAuth, accountRoutes.confirmDeposit);
   app.post("/api/wallet/transfer", requireAuth, accountRoutes.transferToSub);
   app.post("/api/plans/choose", requireAuth, accountRoutes.choosePlan);
 

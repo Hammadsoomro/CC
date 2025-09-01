@@ -59,31 +59,9 @@ export default function Wallet() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full">Deposit</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Deposit to Wallet</DialogTitle>
-                  <DialogDescription>Pay securely using Visa or Mastercard via Stripe Checkout.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 py-2">
-                  <div>
-                    <Label htmlFor="amount">Amount (USD)</Label>
-                    <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Cards accepted:</span>
-                    <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1">Visa</span>
-                    <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1">Mastercard</span>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={deposit} disabled={!Number(amount)}>Pay with card</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button className="w-full" asChild>
+              <a href="/deposit">Deposit</a>
+            </Button>
             <div className="text-xs text-muted-foreground">Sub-accounts cannot deposit funds.</div>
           </div>
         </CardContent>
