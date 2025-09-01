@@ -1,7 +1,8 @@
 export async function api<T = any>(url: string, options: RequestInit = {}) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
   const res = await fetch(url, {
     credentials: "include",
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: { "Content-Type": "application/json", ...(options.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...options,
   });
   if (!res.ok) {
