@@ -8,6 +8,23 @@ export default function BuyNumbers() {
   const [country, setCountry] = useState("US");
   const [results, setResults] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
+  const [allowed, setAllowed] = useState<boolean>(false);
+
+  const checkRole = async () => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const r = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!r.ok) throw new Error("unauth");
+      const d = await r.json();
+      if (d?.user?.role !== "main") {
+        window.location.href = "/dashboard";
+        return;
+      }
+      setAllowed(true);
+    } catch {
+      window.location.href = "/login";
+    }
+  };
 
   const search = async () => {
     setError("");
@@ -33,8 +50,14 @@ export default function BuyNumbers() {
   };
 
   useEffect(() => {
-    search();
+    checkRole();
   }, []);
+
+  useEffect(() => {
+    if (allowed) search();
+  }, [allowed]);
+
+  if (!allowed) return null;
 
   return (
     <div className="p-6 max-w-3xl">
