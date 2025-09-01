@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 
 import { useEffect, useState } from "react";
 
@@ -41,11 +42,12 @@ export default function BuyNumbers() {
   const purchase = async (phone_number: string) => {
     const token = localStorage.getItem("jwt");
     const res = await fetch(`/api/numbers/purchase`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phone_number }) });
+    const d = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      alert(d.error || "Purchase failed");
+      toast.error(d.error || "Purchase failed");
     } else {
-      alert("Purchased");
+      toast.success("Number purchased");
+      search();
     }
   };
 
