@@ -9,7 +9,8 @@ export default function BuyNumbers() {
   const [results, setResults] = useState<any[]>([]);
 
   const search = async () => {
-    const res = await fetch(`/api/numbers/search?country=${country}`, { credentials: "include" });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch(`/api/numbers/search?country=${country}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     const data = await res.json();
     setResults(data.data || data.items || data.phone_numbers || []);
   };
