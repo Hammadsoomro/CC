@@ -7,9 +7,6 @@ export default function Index() {
       <header className="flex items-center justify-between px-6 py-4 border-b">
         <Link to="/" className="text-lg font-bold">Connectlify</Link>
         <nav className="flex items-center gap-2">
-          <Link to="/pricing" className="text-sm hover:underline">Pricing</Link>
-          <Link to="/privacy" className="text-sm hover:underline">Privacy</Link>
-          <Link to="/terms" className="text-sm hover:underline">Terms</Link>
           <Button asChild size="sm">
             <Link to="/signup">Get Started</Link>
           </Button>
