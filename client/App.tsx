@@ -19,6 +19,7 @@ import SubAccounts from "./pages/SubAccounts";
 import Pricing from "./pages/Pricing";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
