@@ -58,7 +58,8 @@ export default function BuyNumbers() {
             <Button onClick={search}>Search Available</Button>
           </div>
           <div className="mt-4 space-y-2">
-            {results.length === 0 && <div className="text-sm text-muted-foreground">No results yet.</div>}
+            {error && <div className="text-sm text-red-600">{error}</div>}
+            {!error && results.length === 0 && <div className="text-sm text-muted-foreground">No results yet.</div>}
             {results.map((r: any) => (
               <div key={r.phone_number || r.number || r.id} className="flex items-center justify-between rounded-md border p-3">
                 <div className="text-sm font-medium">{r.phone_number || r.number}</div>
