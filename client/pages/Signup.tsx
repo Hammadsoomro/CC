@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { AdsRail } from "@/components/layout/AdsRail";
+import { api } from "@/lib/api";
 
 const schema = z.object({
   firstName: z.string().min(1),
@@ -28,11 +29,8 @@ export default function Signup() {
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "", agree: false as any } });
 
   const onSubmit = async (values: Values) => {
-    const res = await fetch("/api/auth/signup", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: values.email, password: values.password, firstName: values.firstName, lastName: values.lastName, phone: values.phone }) });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Signup failed");
-    }
+    const data = await api<{ token: string }>("/api/auth/signup", { method: "POST", body: JSON.stringify({ email: values.email, password: values.password, firstName: values.firstName, lastName: values.lastName, phone: values.phone }) });
+    if (data?.token) localStorage.setItem("jwt", data.token);
     navigate("/dashboard");
   };
 
