@@ -40,7 +40,7 @@ export const authRoutes = {
     const user = await User.create({ email, passwordHash, firstName, lastName, phone, role: "main" });
     const token = signToken({ userId: user._id.toString() });
     res.cookie(COOKIE_NAME, token, cookieOpts);
-    res.json({ user: { id: user._id, email: user.email, firstName, lastName, role: user.role } });
+    res.json({ token, user: { id: user._id, email: user.email, firstName, lastName, role: user.role } });
   }) as RequestHandler,
   login: (async (req, res) => {
     await connectDB();
@@ -51,7 +51,7 @@ export const authRoutes = {
     if (!ok) return res.status(400).json({ error: "invalid credentials" });
     const token = signToken({ userId: user._id.toString() });
     res.cookie(COOKIE_NAME, token, cookieOpts);
-    res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } });
+    res.json({ token, user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } });
   }) as RequestHandler,
   me: (async (req, res) => {
     await connectDB();
