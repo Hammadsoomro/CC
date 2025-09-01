@@ -12,7 +12,8 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
   const [newName, setNewName] = useState("");
 
   const load = async () => {
-    const res = await fetch("/api/contacts", { credentials: "include" });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/contacts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     const data = await res.json();
     setContacts(data.contacts || []);
   };
@@ -20,17 +21,20 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
 
   const add = async () => {
     if (!newPhone.trim()) return;
-    await fetch("/api/contacts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phoneNumber: newPhone, name: newName || undefined }) });
+    const token = localStorage.getItem("jwt");
+    await fetch("/api/contacts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phoneNumber: newPhone, name: newName || undefined }) });
     setNewPhone(""); setNewName("");
     load();
   };
 
   const update = async (id: string, patch: Partial<ContactItem>) => {
-    await fetch(`/api/contacts/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(patch) });
+    const token = localStorage.getItem("jwt");
+    await fetch(`/api/contacts/${id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(patch) });
     load();
   };
   const remove = async (id: string) => {
-    await fetch(`/api/contacts/${id}`, { method: "DELETE", credentials: "include" });
+    const token = localStorage.getItem("jwt");
+    await fetch(`/api/contacts/${id}`, { method: "DELETE", credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     load();
   };
 
