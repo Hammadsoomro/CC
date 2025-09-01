@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { AdsRail } from "@/components/layout/AdsRail";
+import { api } from "@/lib/api";
 
 const schema = z.object({
   email: z.string().email(),
@@ -21,11 +22,8 @@ export default function Login() {
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", agree: false as any } });
 
   const onSubmit = async (values: Values) => {
-    const res = await fetch("/api/auth/login", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: values.email, password: values.password }) });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || "Login failed");
-    }
+    const data = await api<{ token: string }>("/api/auth/login", { method: "POST", body: JSON.stringify({ email: values.email, password: values.password }) });
+    if (data?.token) localStorage.setItem("jwt", data.token);
     navigate("/dashboard");
   };
 
