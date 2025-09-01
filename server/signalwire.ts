@@ -3,15 +3,18 @@ import { NumberModel, User } from "./models";
 import { connectDB } from "./db";
 
 const spaceUrl = process.env.SIGNALWIRE_SPACE_URL;
-const token = process.env.SIGNALWIRE_TOKEN;
+const apiToken = process.env.SIGNALWIRE_TOKEN; // PT...
+const projectId = process.env.SIGNALWIRE_PROJECT_ID;
 
 async function swFetch(path: string, init?: RequestInit) {
-  if (!spaceUrl || !token) throw new Error("SignalWire env not set");
+  if (!spaceUrl || !apiToken || !projectId) throw new Error("SignalWire env not set");
   const url = `https://${spaceUrl}/api/relay/rest${path}`;
+  const basic = Buffer.from(`${projectId}:${apiToken}`).toString("base64");
   const res = await fetch(url, {
     ...init,
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Basic ${basic}`,
+      "X-SignalWire-Project": projectId,
       "Content-Type": "application/json",
       ...(init?.headers as any),
     },
