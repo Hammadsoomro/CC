@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 import { useEffect, useState } from "react";
 
@@ -11,6 +13,7 @@ export default function Wallet() {
   const [subs, setSubs] = useState<any[]>([]);
   const [toSub, setToSub] = useState<string>("");
   const [transferAmt, setTransferAmt] = useState<string>("");
+  const [depositOpen, setDepositOpen] = useState(false);
 
   const load = async () => {
     const r = await fetch("/api/auth/me", { credentials: "include" });
@@ -24,14 +27,19 @@ export default function Wallet() {
   const deposit = async () => {
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/wallet/checkout-session", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      toast.error(data.error || "Unable to create checkout session");
+      return;
+    }
     if (data.url) window.location.href = data.url;
   };
 
   const transfer = async () => {
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }) });
-    if (res.ok) { alert("Transferred"); load(); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { toast.success("Transferred"); setTransferAmt(""); load(); } else { toast.error(d.error || "Transfer failed"); }
   };
 
   return (
@@ -51,11 +59,31 @@ export default function Wallet() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div>
-              <Label htmlFor="amount">Amount (USD)</Label>
-              <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-            <Button className="w-full" onClick={deposit}>Deposit via Stripe</Button>
+            <Dialog open={depositOpen} onOpenChange={setDepositOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full">Deposit</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Deposit to Wallet</DialogTitle>
+                  <DialogDescription>Pay securely using Visa or Mastercard via Stripe Checkout.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 py-2">
+                  <div>
+                    <Label htmlFor="amount">Amount (USD)</Label>
+                    <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Cards accepted:</span>
+                    <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1">Visa</span>
+                    <span className="inline-flex items-center gap-1 rounded-md border px-2 py-1">Mastercard</span>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={deposit} disabled={!Number(amount)}>Pay with card</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <div className="text-xs text-muted-foreground">Sub-accounts cannot deposit funds.</div>
           </div>
         </CardContent>
