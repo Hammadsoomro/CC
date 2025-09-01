@@ -29,7 +29,8 @@ export default function AppShell() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch("/api/auth/me", { credentials: "include" });
+        const token = localStorage.getItem("jwt");
+        const r = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
         if (r.status === 401) throw new Error("unauth");
         const { user } = await r.json();
         setMe(user);
