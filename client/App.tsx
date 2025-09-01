@@ -32,6 +32,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
 
           <Route path="/" element={<AppShell />}>
             <Route path="dashboard" element={<Dashboard />} />
@@ -40,8 +42,6 @@ const App = () => (
             <Route path="buy-numbers" element={<BuyNumbers />} />
             <Route path="sub-accounts" element={<SubAccounts />} />
             <Route path="pricing" element={<Pricing />} />
-            <Route path="privacy" element={<Privacy />} />
-            <Route path="terms" element={<Terms />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
