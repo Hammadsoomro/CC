@@ -18,8 +18,9 @@ export default function SubAccounts() {
 
   const create = async () => {
     if (!email || !password) return;
-    const res = await fetch("/api/sub-accounts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) });
-    if (res.ok) { setEmail(""); setPassword(""); load(); }
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/sub-accounts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ email, password }) });
+    if (res.ok) { setEmail(""); setPassword(""); load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to create sub-account"); }
   };
 
   return (
