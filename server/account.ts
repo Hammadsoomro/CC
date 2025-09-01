@@ -137,4 +137,21 @@ export const accountRoutes = {
     await User.deleteOne({ _id: sub._id });
     res.json({ ok: true });
   }) as RequestHandler,
+
+  choosePlan: (async (req, res) => {
+    await connectDB();
+    const userId = (req as any).userId as string;
+    const { plan } = req.body || {};
+    const planKey = String(plan || "").toLowerCase();
+    const prices: Record<string, number> = { starter: 9, professional: 19, enterprise: 49 };
+    if (!prices[planKey]) return res.status(400).json({ error: "invalid plan" });
+
+    const me = await User.findById(userId).lean();
+    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can choose plans" });
+    const amount = prices[planKey];
+    if ((me.walletBalance ?? 0) < amount) return res.status(400).json({ error: "Insufficient wallet balance" });
+
+    await User.updateOne({ _id: userId }, { $set: { plan: planKey }, $inc: { walletBalance: -amount } });
+    res.json({ ok: true, plan: planKey });
+  }) as RequestHandler,
 };
