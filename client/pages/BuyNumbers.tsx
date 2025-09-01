@@ -22,7 +22,8 @@ export default function BuyNumbers() {
     setResults(Array.isArray(data.numbers) ? data.numbers : []);
   };
   const purchase = async (phone_number: string) => {
-    const res = await fetch(`/api/numbers/purchase`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone_number }) });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch(`/api/numbers/purchase`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phone_number }) });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       alert(d.error || "Purchase failed");
