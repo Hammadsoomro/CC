@@ -34,13 +34,18 @@ export const accountRoutes = {
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
     if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can create sub-accounts" });
-    const { email, password, firstName, lastName, phone } = req.body || {};
+
+    const currentCount = await User.countDocuments({ parentUserId: userId });
+    const maxSubs = getMaxSubsForPlan(me.plan);
+    if (currentCount >= maxSubs) return res.status(403).json({ error: `Plan limit reached: max ${maxSubs} sub-accounts` });
+
+    const { email, password, firstName, lastName, phone, walletLimit } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: "email/password required" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ error: "email already used" });
     const bcrypt = await import("bcryptjs");
     const passwordHash = await bcrypt.default.hash(password, 10);
-    const sub = await User.create({ email, passwordHash, firstName, lastName, phone, role: "sub", parentUserId: userId, walletBalance: 0 });
+    const sub = await User.create({ email, passwordHash, firstName, lastName, phone, role: "sub", parentUserId: userId, walletBalance: 0, walletLimit });
     res.json({ sub: { id: sub._id, email: sub.email } });
   }) as RequestHandler,
 
