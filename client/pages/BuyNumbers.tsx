@@ -101,16 +101,21 @@ export default function BuyNumbers() {
 
   const search = async () => {
     setError("");
-    const token = localStorage.getItem("jwt");
-    const qs = new URLSearchParams({ country, ...(region ? { region } : {}) });
-    const res = await fetch(`/api/numbers/search?${qs.toString()}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      setError(data.error || "Unable to load numbers. Check SignalWire credentials.");
+    try {
+      const token = localStorage.getItem("jwt");
+      const qs = new URLSearchParams({ country, ...(region ? { region } : {}) });
+      const res = await fetch(`/api/numbers/search?${qs.toString()}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Unable to load numbers. Check SignalWire credentials.");
+        setResults([]);
+        return;
+      }
+      setResults(Array.isArray(data.numbers) ? data.numbers : []);
+    } catch (e) {
+      setError("Network error: unable to reach API");
       setResults([]);
-      return;
     }
-    setResults(Array.isArray(data.numbers) ? data.numbers : []);
   };
   const purchase = async (phone_number: string) => {
     const token = localStorage.getItem("jwt");
