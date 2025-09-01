@@ -30,8 +30,20 @@ export const numberRoutes = {
   search: (async (req, res) => {
     try {
       const { country = "US", limit = 10 } = req.query as any;
-      const data = await swFetch(`/phone_numbers/search?country=${encodeURIComponent(country)}&limit=${encodeURIComponent(limit)}`);
-      res.json(data);
+      const data: any = await swFetch(`/phone_numbers/search?country=${encodeURIComponent(country)}&limit=${encodeURIComponent(limit)}`);
+      const candidates: any[] = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.data)
+        ? data.data
+        : Array.isArray(data?.items)
+        ? data.items
+        : Array.isArray(data?.phone_numbers)
+        ? data.phone_numbers
+        : [];
+      const numbers: string[] = candidates
+        .map((r: any) => r?.phone_number || r?.number || r?.e164 || (typeof r === "string" ? r : null))
+        .filter((n: any) => typeof n === "string");
+      res.json({ numbers });
     } catch (e: any) {
       const msg = String(e?.message || e || "SignalWire error");
       const status = msg.includes("401") ? 401 : 502;
