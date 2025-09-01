@@ -90,6 +90,11 @@ export const accountRoutes = {
     if (sub.role !== "sub" || String(sub.parentUserId) !== String(main._id)) return res.status(403).json({ error: "not your sub-account" });
     if ((main.walletBalance ?? 0) < amt) return res.status(400).json({ error: "insufficient balance" });
 
+    if (typeof sub.walletLimit === "number" && sub.walletLimit >= 0) {
+      const next = (sub.walletBalance ?? 0) + amt;
+      if (next > sub.walletLimit) return res.status(400).json({ error: "exceeds sub-account wallet limit" });
+    }
+
     await User.updateOne({ _id: main._id }, { $inc: { walletBalance: -amt } });
     await User.updateOne({ _id: sub._id }, { $inc: { walletBalance: amt } });
     res.json({ ok: true });
