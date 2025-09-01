@@ -15,19 +15,22 @@ export default function Wallet() {
   const load = async () => {
     const r = await fetch("/api/auth/me", { credentials: "include" });
     if (r.ok) setMe((await r.json()).user);
-    const s = await fetch("/api/sub-accounts", { credentials: "include" });
+    const token = localStorage.getItem("jwt");
+    const s = await fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     if (s.ok) setSubs((await s.json()).subs || []);
   };
   useEffect(() => { load(); }, []);
 
   const deposit = async () => {
-    const res = await fetch("/api/wallet/checkout-session", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ amount: Number(amount) }) });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/wallet/checkout-session", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
   };
 
   const transfer = async () => {
-    const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }) });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }) });
     if (res.ok) { alert("Transferred"); load(); }
   };
 
