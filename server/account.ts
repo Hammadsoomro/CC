@@ -99,4 +99,42 @@ export const accountRoutes = {
     await User.updateOne({ _id: sub._id }, { $inc: { walletBalance: amt } });
     res.json({ ok: true });
   }) as RequestHandler,
+
+  subUpdate: (async (req, res) => {
+    await connectDB();
+    const mainId = (req as any).userId as string;
+    const subId = req.params.id;
+    const me = await User.findById(mainId).lean();
+    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can edit sub-accounts" });
+    const sub = await User.findById(subId);
+    if (!sub || String(sub.parentUserId) !== String(mainId)) return res.status(404).json({ error: "sub-account not found" });
+
+    const { firstName, lastName, email, password, walletLimit } = req.body || {};
+    if (email && email !== sub.email) {
+      const exists = await User.findOne({ email });
+      if (exists) return res.status(400).json({ error: "email already used" });
+    }
+
+    const update: any = { firstName, lastName, email, walletLimit };
+    if (password) {
+      const bcrypt = await import("bcryptjs");
+      update.passwordHash = await bcrypt.default.hash(password, 10);
+    }
+
+    Object.keys(update).forEach((k) => update[k] === undefined && delete update[k]);
+    await User.updateOne({ _id: sub._id }, { $set: update });
+    res.json({ ok: true });
+  }) as RequestHandler,
+
+  subDelete: (async (req, res) => {
+    await connectDB();
+    const mainId = (req as any).userId as string;
+    const subId = req.params.id;
+    const sub = await User.findById(subId);
+    if (!sub) return res.status(404).json({ error: "not found" });
+    if (sub.role !== "sub" || String(sub.parentUserId) !== String(mainId)) return res.status(403).json({ error: "not your sub-account" });
+
+    await User.deleteOne({ _id: sub._id });
+    res.json({ ok: true });
+  }) as RequestHandler,
 };
