@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export interface ContactItem { _id: string; phoneNumber: string; name?: string; pinned?: boolean; favorite?: boolean }
 
@@ -10,6 +11,9 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
   const [contacts, setContacts] = useState<ContactItem[]>([]);
   const [newPhone, setNewPhone] = useState("");
   const [newName, setNewName] = useState("");
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<ContactItem | null>(null);
+  const [editName, setEditName] = useState("");
 
   const load = async () => {
     const token = localStorage.getItem("jwt");
@@ -64,10 +68,7 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => update(c._id, { pinned: !c.pinned })}>{c.pinned ? "Unpin" : "Pin"}</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => update(c._id, { favorite: !c.favorite })}>{c.favorite ? "Unfavorite" : "Favorite"}</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => {
-                      const name = prompt("Edit name", c.name || "");
-                      if (name !== null) update(c._id, { name });
-                    }}>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { setEditing(c); setEditName(c.name || ""); setEditOpen(true); }}>Edit</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => remove(c._id)}>Delete</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -76,6 +77,18 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
           ))}
         </ul>
       </div>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit contact</DialogTitle>
+            <DialogDescription>Update the display name for this contact.</DialogDescription>
+          </DialogHeader>
+          <Input placeholder="Name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+          <DialogFooter>
+            <Button onClick={async () => { if (editing) { await update(editing._id, { name: editName }); setEditOpen(false); setEditing(null); } }}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
