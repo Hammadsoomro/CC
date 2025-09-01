@@ -154,8 +154,8 @@ export default function AppShell() {
                 )}
               </SelectContent>
             </Select>
-            <Button asChild variant="secondary" size="sm">
-              <Link to="/login">Logout</Link>
+            <Button variant="secondary" size="sm" onClick={async () => { try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {} localStorage.removeItem('jwt'); window.location.href = '/login'; }}>
+              Logout
             </Button>
           </div>
         </header>
