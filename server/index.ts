@@ -52,6 +52,7 @@ export function createServer() {
   app.delete("/api/sub-accounts/:id", requireAuth, accountRoutes.subDelete);
   app.post("/api/wallet/checkout-session", requireAuth, accountRoutes.createCheckoutSession);
   app.post("/api/wallet/transfer", requireAuth, accountRoutes.transferToSub);
+  app.post("/api/plans/choose", requireAuth, accountRoutes.choosePlan);
 
   // Example API routes
   app.get("/api/ping", (_req, res) => {
