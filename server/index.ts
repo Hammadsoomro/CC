@@ -7,6 +7,7 @@ import { authRoutes, requireAuth } from "./auth";
 import { numberRoutes } from "./signalwire";
 import { contactRoutes } from "./contacts";
 import { accountRoutes } from "./account";
+import { messageRoutes } from "./messages";
 import { listSubAccounts } from "./routes/subaccounts";
 
 export function createServer() {
@@ -32,7 +33,7 @@ export function createServer() {
   app.get("/api/numbers/search", requireAuth, numberRoutes.search);
   app.post("/api/numbers/purchase", requireAuth, numberRoutes.purchase);
   app.get("/api/numbers", requireAuth, numberRoutes.myNumbers);
-  app.post("/api/messages/send", requireAuth, (await import("./messages")).messageRoutes.send);
+  app.post("/api/messages/send", requireAuth, messageRoutes.send);
   app.post("/api/numbers/assign", requireAuth, numberRoutes.assign);
   app.post("/api/numbers/unassign", requireAuth, numberRoutes.unassign);
 
