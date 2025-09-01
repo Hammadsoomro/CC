@@ -11,13 +11,31 @@ export default function SubAccounts() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [allowed, setAllowed] = useState<boolean>(false);
+
+  const ensureMain = async () => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const r = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!r.ok) throw new Error("unauth");
+      const d = await r.json();
+      if (d?.user?.role !== "main") {
+        window.location.href = "/dashboard";
+        return;
+      }
+      setAllowed(true);
+    } catch {
+      window.location.href = "/login";
+    }
+  };
 
   const load = async () => {
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     if (res.ok) setSubs((await res.json()).subs || []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { ensureMain(); }, []);
+  useEffect(() => { if (allowed) load(); }, [allowed]);
 
   const create = async () => {
     if (!email || !password || password !== confirmPassword) { alert("Check fields"); return; }
@@ -25,6 +43,8 @@ export default function SubAccounts() {
     const res = await fetch("/api/sub-accounts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ email, password, firstName, lastName }) });
     if (res.ok) { setFirstName(""); setLastName(""); setEmail(""); setPassword(""); setConfirmPassword(""); load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to create sub-account"); }
   };
+
+  if (!allowed) return null;
 
   return (
     <div className="p-6">
