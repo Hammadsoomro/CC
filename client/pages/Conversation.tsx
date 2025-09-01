@@ -16,7 +16,7 @@ export default function Conversation() {
     const res = await fetch("/api/messages/send", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ to: current.phoneNumber, body: message, from }) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      alert(data.error || "Failed to send");
+      import("sonner").then(({ toast }) => toast.error(data.error || "Failed to send"));
       return;
     }
     setHistory((h) => [...h, { fromMe: true, body: message }]);
