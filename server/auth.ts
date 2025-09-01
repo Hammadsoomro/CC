@@ -56,7 +56,7 @@ export const authRoutes = {
   me: (async (req, res) => {
     await connectDB();
     try {
-      const token = req.cookies?.[COOKIE_NAME];
+      const token = req.cookies?.[COOKIE_NAME] || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : undefined);
       if (!token) return res.status(401).json({ error: "Unauthorized" });
       const decoded = verifyToken(token);
       const user = await User.findById(decoded.userId).lean();
