@@ -110,10 +110,20 @@ export const numberRoutes = {
       const price = 2.5;
       if ((me.walletBalance ?? 0) < price) return res.status(400).json({ error: "Insufficient wallet balance" });
 
-      const resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number }) });
+      const toE164 = (n: string) => {
+        const raw = String(n).trim();
+        if (raw.startsWith("+")) return raw;
+        const digits = raw.replace(/\D/g, "");
+        if (digits.length === 10) return "+1" + digits;
+        if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+        return "+" + digits;
+      };
+      const e164 = toE164(phone_number);
+
+      const resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number: e164 }) });
 
       await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
-      await NumberModel.create({ phoneNumber: phone_number, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
+      await NumberModel.create({ phoneNumber: e164, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
 
       res.json({ ok: true });
     } catch (e: any) {
