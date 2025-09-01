@@ -61,7 +61,7 @@ export const authRoutes = {
       const decoded = verifyToken(token);
       const user = await User.findById(decoded.userId).lean();
       if (!user) return res.status(401).json({ error: "Unauthorized" });
-      res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, walletBalance: user.walletBalance } });
+      res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, walletBalance: user.walletBalance, plan: user.plan } });
     } catch {
       res.status(401).json({ error: "Unauthorized" });
     }
