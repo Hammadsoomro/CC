@@ -28,17 +28,18 @@ export default function AppShell() {
   const [numbers, setNumbers] = useState<any[]>([]);
   useEffect(() => {
     (async () => {
-      const r = await fetch("/api/auth/me", { credentials: "include" });
-      if (r.status === 401) {
+      try {
+        const r = await fetch("/api/auth/me", { credentials: "include" });
+        if (r.status === 401) throw new Error("unauth");
+        const { user } = await r.json();
+        setMe(user);
+        const n = await fetch("/api/numbers", { credentials: "include", headers: (() => { const t = localStorage.getItem("jwt"); return t ? { Authorization: `Bearer ${t}` } : {}; })() });
+        if (n.ok) {
+          const d = await n.json();
+          setNumbers(d.numbers || []);
+        }
+      } catch {
         window.location.href = "/login";
-        return;
-      }
-      const { user } = await r.json();
-      setMe(user);
-      const n = await fetch("/api/numbers", { credentials: "include" });
-      if (n.ok) {
-        const d = await n.json();
-        setNumbers(d.numbers || []);
       }
     })();
   }, []);
