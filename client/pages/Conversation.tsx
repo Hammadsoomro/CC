@@ -7,6 +7,21 @@ import ContactsPanel, { ContactItem } from "@/components/conversation/ContactsPa
 export default function Conversation() {
   const [message, setMessage] = useState("");
   const [current, setCurrent] = useState<ContactItem | null>(null);
+  const [history, setHistory] = useState<{ fromMe: boolean; body: string }[]>([]);
+
+  const send = async () => {
+    const token = localStorage.getItem("jwt");
+    const from = localStorage.getItem("fromNumber") || undefined;
+    if (!current || !message.trim()) return;
+    const res = await fetch("/api/messages/send", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ to: current.phoneNumber, body: message, from }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      alert(data.error || "Failed to send");
+      return;
+    }
+    setHistory((h) => [...h, { fromMe: true, body: message }]);
+    setMessage("");
+  };
 
   return (
     <div className="h-[calc(100svh-3.5rem)] grid grid-cols-12">
