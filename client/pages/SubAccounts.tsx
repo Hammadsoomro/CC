@@ -1,6 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -16,6 +20,13 @@ export default function SubAccounts() {
   const [assignPick, setAssignPick] = useState<Record<string, string>>({});
   const [transferAmt, setTransferAmt] = useState<Record<string, string>>({});
   const [limits, setLimits] = useState<Record<string, string>>({});
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPass, setEditPass] = useState("");
 
   const ensureMain = async () => {
     try {
@@ -52,10 +63,11 @@ export default function SubAccounts() {
   useEffect(() => { if (allowed) load(); }, [allowed]);
 
   const create = async () => {
-    if (!email || !password || password !== confirmPassword) { alert("Check fields"); return; }
+    if (!email || !password || password !== confirmPassword) { toast.error("Check fields"); return; }
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/sub-accounts", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ email, password, firstName, lastName }) });
-    if (res.ok) { setFirstName(""); setLastName(""); setEmail(""); setPassword(""); setConfirmPassword(""); load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to create sub-account"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { setFirstName(""); setLastName(""); setEmail(""); setPassword(""); setConfirmPassword(""); toast.success("Sub-account created"); load(); } else { toast.error(d.error || "Failed to create sub-account"); }
   };
 
   const bySubAssigned = useMemo(() => {
@@ -71,13 +83,15 @@ export default function SubAccounts() {
     if (!numberId) return;
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/numbers/assign", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ numberId, subUserId: subId }) });
-    if (res.ok) { setAssignPick({ ...assignPick, [subId]: "" }); load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to assign"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { setAssignPick({ ...assignPick, [subId]: "" }); toast.success("Assigned"); load(); } else { toast.error(d.error || "Failed to assign"); }
   };
 
   const doUnassign = async (numberId: string) => {
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/numbers/unassign", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ numberId }) });
-    if (res.ok) { load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to unassign"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { toast.success("Unassigned"); load(); } else { toast.error(d.error || "Failed to unassign"); }
   };
 
   const doTransfer = async (subId: string) => {
@@ -85,7 +99,8 @@ export default function SubAccounts() {
     if (!(amt > 0)) return;
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ toSubUserId: subId, amount: amt }) });
-    if (res.ok) { setTransferAmt({ ...transferAmt, [subId]: "" }); load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Transfer failed"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { setTransferAmt({ ...transferAmt, [subId]: "" }); toast.success("Transferred"); load(); } else { toast.error(d.error || "Transfer failed"); }
   };
 
   const saveLimit = async (subId: string) => {
@@ -93,24 +108,31 @@ export default function SubAccounts() {
     const walletLimit = limitVal === "" ? null : Number(limitVal);
     const token = localStorage.getItem("jwt");
     const res = await fetch(`/api/sub-accounts/${subId}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ walletLimit }) });
-    if (res.ok) { load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to save limit"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { toast.success("Saved"); load(); } else { toast.error(d.error || "Failed to save limit"); }
   };
 
   const doDelete = async (subId: string) => {
-    if (!confirm("Delete this sub-account?")) return;
     const token = localStorage.getItem("jwt");
     const res = await fetch(`/api/sub-accounts/${subId}`, { method: "DELETE", credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-    if (res.ok) { load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to delete"); }
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { toast.success("Deleted"); load(); } else { toast.error(d.error || "Failed to delete"); }
   };
 
-  const doEdit = async (sub: any) => {
-    const fn = prompt("First name", sub.firstName || "") ?? sub.firstName;
-    const ln = prompt("Last name", sub.lastName || "") ?? sub.lastName;
-    const em = prompt("Email", sub.email || "") ?? sub.email;
-    const pw = prompt("New password (leave blank to keep)", "");
+  const openEdit = (sub: any) => {
+    setEditing(sub);
+    setEditFirst(sub.firstName || "");
+    setEditLast(sub.lastName || "");
+    setEditEmail(sub.email || "");
+    setEditPass("");
+    setEditOpen(true);
+  };
+  const submitEdit = async () => {
+    if (!editing) return;
     const token = localStorage.getItem("jwt");
-    const res = await fetch(`/api/sub-accounts/${sub._id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ firstName: fn, lastName: ln, email: em, password: pw || undefined }) });
-    if (res.ok) { load(); } else { const d = await res.json().catch(() => ({})); alert(d.error || "Failed to edit"); }
+    const res = await fetch(`/api/sub-accounts/${editing._id}`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ firstName: editFirst, lastName: editLast, email: editEmail, password: editPass || undefined }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) { toast.success("Saved"); setEditOpen(false); setEditing(null); load(); } else { toast.error(d.error || "Failed to edit"); }
   };
 
   if (!allowed) return null;
@@ -185,8 +207,22 @@ export default function SubAccounts() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => doEdit(s)}>Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => doDelete(s._id)}>Delete</Button>
+                      <Button variant="outline" size="sm" onClick={() => openEdit(s)}>Edit</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" onClick={() => setDeleteId(s._id)}>Delete</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete sub-account?</AlertDialogTitle>
+                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteId && doDelete(deleteId)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -196,6 +232,24 @@ export default function SubAccounts() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit sub-account</DialogTitle>
+            <DialogDescription>Update profile details for this sub-account.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3">
+            <Input placeholder="First name" value={editFirst} onChange={(e) => setEditFirst(e.target.value)} />
+            <Input placeholder="Last name" value={editLast} onChange={(e) => setEditLast(e.target.value)} />
+            <Input placeholder="Email" className="col-span-2" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} />
+            <Input placeholder="New password (optional)" type="password" className="col-span-2" value={editPass} onChange={(e) => setEditPass(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button onClick={submitEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
