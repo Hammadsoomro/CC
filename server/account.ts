@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { User } from "./models";
 import { connectDB } from "./db";
 import Stripe from "stripe";
+import { getMaxSubsForPlan } from "./plans";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret) : null;
