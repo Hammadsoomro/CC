@@ -36,6 +36,7 @@ export function createServer() {
   app.post("/api/messages/send", requireAuth, messageRoutes.send);
   app.post("/api/numbers/assign", requireAuth, numberRoutes.assign);
   app.post("/api/numbers/unassign", requireAuth, numberRoutes.unassign);
+  app.post("/api/numbers/add-existing", requireAuth, numberRoutes.addExisting);
 
   // Contacts (protected)
   app.get("/api/contacts", requireAuth, contactRoutes.list);
