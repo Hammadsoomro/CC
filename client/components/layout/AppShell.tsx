@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 export default function AppShell() {
   const [me, setMe] = useState<any>(null);
   const [numbers, setNumbers] = useState<any[]>([]);
+  const [fromNumber, setFromNumber] = useState<string | undefined>(() => localStorage.getItem("fromNumber") || undefined);
   useEffect(() => {
     (async () => {
       try {
