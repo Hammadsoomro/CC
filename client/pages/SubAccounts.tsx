@@ -10,7 +10,8 @@ export default function SubAccounts() {
   const [password, setPassword] = useState("");
 
   const load = async () => {
-    const res = await fetch("/api/sub-accounts", { credentials: "include" });
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
     if (res.ok) setSubs((await res.json()).subs || []);
   };
   useEffect(() => { load(); }, []);
