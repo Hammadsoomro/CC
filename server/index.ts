@@ -57,5 +57,11 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
 
+  // Global error handler to avoid crashing overlay
+  app.use((err: any, _req, res, _next) => {
+    const msg = String(err?.message || err || "Server Error");
+    res.status(500).json({ error: msg });
+  });
+
   return app;
 }
