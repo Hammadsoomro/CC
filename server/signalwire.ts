@@ -29,8 +29,8 @@ async function swFetch(path: string, init?: RequestInit) {
 export const numberRoutes = {
   search: (async (req, res) => {
     try {
-      const { country = "US", limit = 10 } = req.query as any;
-      const data: any = await swFetch(`/phone_numbers/search?country=${encodeURIComponent(country)}&limit=${encodeURIComponent(limit)}`);
+      const params = new URLSearchParams({ country: "US", limit: "10", ...(req.query as any) } as any);
+      const data: any = await swFetch(`/phone_numbers/search?${params.toString()}`);
       const candidates: any[] = Array.isArray(data)
         ? data
         : Array.isArray(data?.data)
