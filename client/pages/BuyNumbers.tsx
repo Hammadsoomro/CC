@@ -60,12 +60,16 @@ export default function BuyNumbers() {
           <div className="mt-4 space-y-2">
             {error && <div className="text-sm text-red-600">{error}</div>}
             {!error && results.length === 0 && <div className="text-sm text-muted-foreground">No results yet.</div>}
-            {results.map((r: any) => (
-              <div key={r.phone_number || r.number || r.id} className="flex items-center justify-between rounded-md border p-3">
-                <div className="text-sm font-medium">{r.phone_number || r.number}</div>
-                <Button size="sm" onClick={() => purchase(r.phone_number || r.number)}>Buy $2.50/mo</Button>
-              </div>
-            ))}
+            {results.map((r: any, i: number) => {
+              const num = r?.phone_number || r?.number || (typeof r === 'string' ? r : undefined);
+              const key = r?.id || num || String(i);
+              return (
+                <div key={key} className="flex items-center justify-between rounded-md border p-3">
+                  <div className="text-sm font-medium">{num ?? 'Unknown'}</div>
+                  <Button size="sm" onClick={() => num && purchase(num)} disabled={!num}>Buy $2.50/mo</Button>
+                </div>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
