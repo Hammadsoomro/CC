@@ -78,7 +78,9 @@ export const numberRoutes = {
   myNumbers: (async (req, res) => {
     await connectDB();
     const userId = (req as any).userId as string;
-    const numbers = await NumberModel.find({ ownerUserId: userId }).lean();
+    const me = await User.findById(userId).lean();
+    const q = me?.role === "sub" ? { assignedToUserId: userId } : { ownerUserId: userId };
+    const numbers = await NumberModel.find(q).lean();
     res.json({ numbers });
   }) as RequestHandler,
   assign: (async (req, res) => {
