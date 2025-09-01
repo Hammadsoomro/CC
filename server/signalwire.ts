@@ -25,29 +25,40 @@ async function swFetch(path: string, init?: RequestInit) {
 
 export const numberRoutes = {
   search: (async (req, res) => {
-    const { country = "US", limit = 10 } = req.query as any;
-    const data = await swFetch(`/phone_numbers/search?country=${encodeURIComponent(country)}&limit=${encodeURIComponent(limit)}`);
-    res.json(data);
+    try {
+      const { country = "US", limit = 10 } = req.query as any;
+      const data = await swFetch(`/phone_numbers/search?country=${encodeURIComponent(country)}&limit=${encodeURIComponent(limit)}`);
+      res.json(data);
+    } catch (e: any) {
+      const msg = String(e?.message || e || "SignalWire error");
+      const status = msg.includes("401") ? 401 : 502;
+      res.status(status).json({ error: msg });
+    }
   }) as RequestHandler,
   purchase: (async (req, res) => {
-    await connectDB();
-    const userId = (req as any).userId as string;
-    const { phone_number } = req.body || {};
-    if (!phone_number) return res.status(400).json({ error: "phone_number required" });
+    try {
+      await connectDB();
+      const userId = (req as any).userId as string;
+      const { phone_number } = req.body || {};
+      if (!phone_number) return res.status(400).json({ error: "phone_number required" });
 
-    const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can buy numbers" });
+      const me = await User.findById(userId).lean();
+      if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can buy numbers" });
 
-    // charge $2.50 from wallet
-    const price = 2.5;
-    if ((me.walletBalance ?? 0) < price) return res.status(400).json({ error: "Insufficient wallet balance" });
+      const price = 2.5;
+      if ((me.walletBalance ?? 0) < price) return res.status(400).json({ error: "Insufficient wallet balance" });
 
-    const resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number }) });
+      const resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number }) });
 
-    await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
-    await NumberModel.create({ phoneNumber: phone_number, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
+      await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
+      await NumberModel.create({ phoneNumber: phone_number, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
 
-    res.json({ ok: true });
+      res.json({ ok: true });
+    } catch (e: any) {
+      const msg = String(e?.message || e || "SignalWire error");
+      const status = msg.includes("401") ? 401 : 502;
+      res.status(status).json({ error: msg });
+    }
   }) as RequestHandler,
   myNumbers: (async (req, res) => {
     await connectDB();
