@@ -26,24 +26,64 @@ async function swFetch(path: string, init?: RequestInit) {
   return res.json();
 }
 
+async function swLaml(path: string, init?: RequestInit) {
+  if (!spaceUrl || !apiToken || !projectId) throw new Error("SignalWire env not set");
+  const url = `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}${path}`;
+  const basic = Buffer.from(`${projectId}:${apiToken}`).toString("base64");
+  const res = await fetch(url, {
+    ...init,
+    headers: {
+      Authorization: `Basic ${basic}`,
+      "X-SignalWire-Project": projectId,
+      ...(init?.headers as any),
+    },
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`SignalWire error ${res.status}: ${err}`);
+  }
+  return res.json();
+}
+
 export const numberRoutes = {
   search: (async (req, res) => {
     try {
-      const params = new URLSearchParams({ country: "US", limit: "10", capabilities: "SMS", ...(req.query as any) } as any);
-      const data: any = await swFetch(`/phone_numbers/search?${params.toString()}`);
-      const candidates: any[] = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data?.phone_numbers)
-        ? data.phone_numbers
-        : [];
-      const numbers: string[] = candidates
-        .map((r: any) => r?.phone_number || r?.number || r?.e164 || (typeof r === "string" ? r : null))
-        .filter((n: any) => typeof n === "string");
-      res.json({ numbers });
+      await connectDB();
+      const userId = (req as any).userId as string;
+      const me = await User.findById(userId).lean();
+      if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can search numbers" });
+
+      const country = String((req.query as any)?.country || "US").toUpperCase();
+      const limit = String((req.query as any)?.limit || "10");
+
+      let numbers: string[] = [];
+      try {
+        const params = new URLSearchParams({ limit, country, capabilities: "SMS" } as any);
+        const data: any = await swFetch(`/phone_numbers/search?${params.toString()}`);
+        const candidates: any[] = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.phone_numbers)
+          ? data.phone_numbers
+          : [];
+        numbers = candidates
+          .map((r: any) => r?.phone_number || r?.number || r?.e164 || (typeof r === "string" ? r : null))
+          .filter((n: any) => typeof n === "string");
+      } catch {}
+
+      if (!Array.isArray(numbers) || numbers.length === 0) {
+        const laml = await swLaml(`/AvailablePhoneNumbers/${country}/Local.json?SmsEnabled=true&PageSize=${encodeURIComponent(limit)}`);
+        const items: any[] = Array.isArray(laml?.available_phone_numbers) ? laml.available_phone_numbers : Array.isArray(laml) ? laml : [];
+        numbers = items
+          .map((r: any) => r?.phone_number || r?.PhoneNumber || r?.friendly_name || null)
+          .filter((n: any) => typeof n === "string");
+      }
+
+      const uniq = Array.from(new Set(numbers.filter(Boolean)));
+      res.json({ numbers: uniq });
     } catch (e: any) {
       const msg = String(e?.message || e || "SignalWire error");
       const status = msg.includes("401") ? 401 : 502;
