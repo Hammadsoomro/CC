@@ -142,7 +142,7 @@ export default function AppShell() {
           <Link to="/" className="font-semibold">Connectlify</Link>
           <div className="ml-auto flex items-center gap-3">
             <div className="text-sm">Wallet: <span className="font-semibold">${me?.walletBalance?.toFixed?.(2) ?? "0.00"}</span></div>
-            <Select>
+            <Select value={fromNumber} onValueChange={(v) => { setFromNumber(v); localStorage.setItem("fromNumber", v); }}>
               <SelectTrigger className="w-[220px]">
                 <SelectValue placeholder="Select sending number" />
               </SelectTrigger>
