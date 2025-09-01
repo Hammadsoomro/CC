@@ -82,7 +82,26 @@ export default function AppShell() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                {/* Buy Numbers and Sub-Accounts hidden from sidebar as requested */}
+                {me?.role === "main" && (
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/buy-numbers" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                          <Phone className="mr-2" />
+                          <span>Buy Numbers</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/sub-accounts" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                          <Users className="mr-2" />
+                          <span>Sub-Accounts</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
+                )}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/pricing" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
