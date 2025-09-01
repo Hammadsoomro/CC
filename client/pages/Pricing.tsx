@@ -1,17 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const plans = [
   {
-    name: "Free Trial",
-    price: "$0",
-    features: [
-      "No sub-accounts",
-      "Trial phone number",
-      "Limit 10 SMS to 1 receiver ID",
-    ],
-  },
-  {
+    key: "starter",
     name: "Starter",
     price: "$9/mo",
     features: [
@@ -22,6 +15,7 @@ const plans = [
     ],
   },
   {
+    key: "professional",
     name: "Professional",
     price: "$19/mo",
     features: [
@@ -32,6 +26,7 @@ const plans = [
     ],
   },
   {
+    key: "enterprise",
     name: "Enterprise",
     price: "$49/mo",
     features: [
@@ -41,13 +36,20 @@ const plans = [
       "1000 SMS included, then $0.01/SMS",
     ],
   },
-];
+] as const;
 
 export default function Pricing() {
+  const choose = async (planKey: string) => {
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/plans/choose", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ plan: planKey }) });
+    const d = await res.json().catch(() => ({}));
+    if (res.ok) toast.success(`Plan changed to ${d.plan}`); else toast.error(d.error || "Failed to choose plan");
+  };
+
   return (
-    <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
       {plans.map((p) => (
-        <Card key={p.name}>
+        <Card key={p.key}>
           <CardHeader>
             <CardTitle className="text-xl">{p.name}</CardTitle>
           </CardHeader>
@@ -58,7 +60,7 @@ export default function Pricing() {
                 <li key={f}>{f}</li>
               ))}
             </ul>
-            <Button className="mt-6 w-full">Choose</Button>
+            <Button className="mt-6 w-full" onClick={() => choose(p.key)}>Choose</Button>
           </CardContent>
         </Card>
       ))}
