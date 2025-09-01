@@ -21,8 +21,8 @@ export default function Conversation() {
           </div>
         </ScrollArea>
         <div className="border-t p-3 flex items-center gap-2">
-          <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type your message" onKeyDown={(e) => { if (e.key === 'Enter' && message.trim()) { setMessage(""); } }} />
-          <Button onClick={() => setMessage("")} disabled={!current}>Send</Button>
+          <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type your message" onKeyDown={async (e) => { if (e.key === 'Enter' && message.trim() && current) { await send(); } }} />
+          <Button onClick={async () => current && (await send())} disabled={!current}>Send</Button>
         </div>
       </section>
     </div>
