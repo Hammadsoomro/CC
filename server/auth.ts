@@ -5,6 +5,7 @@ import { User } from "./models";
 import { connectDB } from "./db";
 
 const COOKIE_NAME = "connectlify_jwt";
+const cookieOpts = { httpOnly: true, sameSite: "none" as const, secure: true };
 
 export function signToken(payload: object) {
   const secret = process.env.JWT_SECRET || "dev_secret_change";
@@ -38,7 +39,7 @@ export const authRoutes = {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await User.create({ email, passwordHash, firstName, lastName, phone, role: "main" });
     const token = signToken({ userId: user._id.toString() });
-    res.cookie(COOKIE_NAME, token, { httpOnly: true, sameSite: "lax" });
+    res.cookie(COOKIE_NAME, token, cookieOpts);
     res.json({ user: { id: user._id, email: user.email, firstName, lastName, role: user.role } });
   }) as RequestHandler,
   login: (async (req, res) => {
@@ -49,7 +50,7 @@ export const authRoutes = {
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(400).json({ error: "invalid credentials" });
     const token = signToken({ userId: user._id.toString() });
-    res.cookie(COOKIE_NAME, token, { httpOnly: true, sameSite: "lax" });
+    res.cookie(COOKIE_NAME, token, cookieOpts);
     res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } });
   }) as RequestHandler,
   me: (async (req, res) => {
@@ -66,7 +67,7 @@ export const authRoutes = {
     }
   }) as RequestHandler,
   logout: (async (_req, res) => {
-    res.clearCookie(COOKIE_NAME);
+    res.clearCookie(COOKIE_NAME, cookieOpts);
     res.json({ ok: true });
   }) as RequestHandler,
 };
