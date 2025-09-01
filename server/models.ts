@@ -12,6 +12,7 @@ const UserSchema = new Schema(
     role: { type: String, enum: ["main", "sub"], default: "main" },
     parentUserId: { type: Schema.Types.ObjectId, ref: "User" },
     walletBalance: { type: Number, default: 0 },
+    walletLimit: { type: Number },
     plan: { type: String, default: "free" },
   },
   { timestamps: true }

@@ -48,6 +48,8 @@ export function createServer() {
   app.post("/api/profile", requireAuth, accountRoutes.profileUpdate);
   app.get("/api/sub-accounts", requireAuth, listSubAccounts);
   app.post("/api/sub-accounts", requireAuth, accountRoutes.subCreate);
+  app.patch("/api/sub-accounts/:id", requireAuth, accountRoutes.subUpdate);
+  app.delete("/api/sub-accounts/:id", requireAuth, accountRoutes.subDelete);
   app.post("/api/wallet/checkout-session", requireAuth, accountRoutes.createCheckoutSession);
   app.post("/api/wallet/transfer", requireAuth, accountRoutes.transferToSub);
 
