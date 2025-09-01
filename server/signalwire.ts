@@ -164,4 +164,26 @@ export const numberRoutes = {
     await number.save();
     res.json({ ok: true });
   }) as RequestHandler,
+
+  addExisting: (async (req, res) => {
+    await connectDB();
+    const userId = (req as any).userId as string;
+    const { phone_number, country } = req.body || {};
+    if (!phone_number) return res.status(400).json({ error: "phone_number required" });
+    const me = await User.findById(userId).lean();
+    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can add numbers" });
+    const toE164 = (n: string) => {
+      const raw = String(n).trim();
+      if (raw.startsWith("+")) return raw;
+      const digits = raw.replace(/\D/g, "");
+      if (digits.length === 10) return "+1" + digits;
+      if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+      return "+" + digits;
+    };
+    const e164 = toE164(phone_number);
+    const exists = await NumberModel.findOne({ phoneNumber: e164 }).lean();
+    if (exists) return res.status(400).json({ error: "Number already exists" });
+    await NumberModel.create({ phoneNumber: e164, country: (country || "US").toUpperCase(), ownerUserId: userId });
+    res.json({ ok: true });
+  }) as RequestHandler,
 };
