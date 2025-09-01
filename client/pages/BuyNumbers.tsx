@@ -7,11 +7,18 @@ import { useEffect, useState } from "react";
 export default function BuyNumbers() {
   const [country, setCountry] = useState("US");
   const [results, setResults] = useState<any[]>([]);
+  const [error, setError] = useState<string>("");
 
   const search = async () => {
+    setError("");
     const token = localStorage.getItem("jwt");
     const res = await fetch(`/api/numbers/search?country=${country}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error || "Unable to load numbers. Check SignalWire credentials.");
+      setResults([]);
+      return;
+    }
     setResults(data.data || data.items || data.phone_numbers || []);
   };
   const purchase = async (phone_number: string) => {
