@@ -55,10 +55,14 @@ export const numberRoutes = {
 
       const country = String((req.query as any)?.country || "US").toUpperCase();
       const limit = String((req.query as any)?.limit || "10");
+      const region = String((req.query as any)?.region || "").toUpperCase();
+      const areaCode = String((req.query as any)?.areaCode || "").replace(/[^0-9]/g, "");
 
       let numbers: string[] = [];
       try {
         const params = new URLSearchParams({ limit, country, capabilities: "SMS" } as any);
+        if (region) params.set("region", region);
+        if (areaCode) params.set("area_code", areaCode);
         const data: any = await swFetch(`/phone_numbers/search?${params.toString()}`);
         const candidates: any[] = Array.isArray(data)
           ? data
@@ -75,7 +79,10 @@ export const numberRoutes = {
       } catch {}
 
       if (!Array.isArray(numbers) || numbers.length === 0) {
-        const laml = await swLaml(`/AvailablePhoneNumbers/${country}/Local.json?SmsEnabled=true&PageSize=${encodeURIComponent(limit)}`);
+        const params = new URLSearchParams({ SmsEnabled: "true", PageSize: String(limit) } as any);
+        if (region) params.set("InRegion", region);
+        if (areaCode) params.set("AreaCode", areaCode);
+        const laml = await swLaml(`/AvailablePhoneNumbers/${country}/Local.json?${params.toString()}`);
         const items: any[] = Array.isArray(laml?.available_phone_numbers) ? laml.available_phone_numbers : Array.isArray(laml) ? laml : [];
         numbers = items
           .map((r: any) => r?.phone_number || r?.PhoneNumber || r?.friendly_name || null)
