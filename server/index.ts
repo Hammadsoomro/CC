@@ -9,8 +9,8 @@ import { contactRoutes } from "./contacts";
 import { accountRoutes } from "./account";
 import { messageRoutes } from "./messages";
 import { listSubAccounts } from "./routes/subaccounts";
-import { analyticsRoutes } from "../server/analytics";
-import { walletRoutes } from "../server/wallet";
+import { analyticsRoutes } from "./analytics";
+import { walletRoutes } from "./wallet";
 
 export function createServer() {
   const app = express();
