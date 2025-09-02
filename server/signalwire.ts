@@ -120,7 +120,12 @@ export const numberRoutes = {
       };
       const e164 = toE164(phone_number);
 
-      const resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number: e164 }) });
+      let resp: any;
+      try {
+        resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ number: e164 }) });
+      } catch (err) {
+        resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number: e164 }) });
+      }
 
       await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
       await NumberModel.create({ phoneNumber: e164, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
