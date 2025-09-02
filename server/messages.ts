@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import { connectDB } from "./db";
-import { NumberModel, User } from "./models";
+import { NumberModel, User, Message } from "./models";
 
 const spaceUrl = process.env.SIGNALWIRE_SPACE_URL;
 const apiToken = process.env.SIGNALWIRE_TOKEN;
@@ -24,6 +24,16 @@ async function swLaml(path: string, init?: RequestInit) {
   return res.json();
 }
 
+const toE164 = (n: string) => {
+  const raw = String(n || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) return "+1" + digits;
+  if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+  return "+" + digits;
+};
+
 export const messageRoutes = {
   send: (async (req, res) => {
     try {
@@ -34,16 +44,6 @@ export const messageRoutes = {
 
       const me = await User.findById(userId).lean();
       if (!me) return res.status(401).json({ error: "Unauthorized" });
-
-      const toE164 = (n: string) => {
-        const raw = String(n || "").trim();
-        if (!raw) return "";
-        if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
-        const digits = raw.replace(/\D/g, "");
-        if (digits.length === 10) return "+1" + digits; // default country US if local 10-digit
-        if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
-        return "+" + digits;
-      };
 
       let fromNumber = from as string | undefined;
       if (!fromNumber) {
@@ -60,18 +60,87 @@ export const messageRoutes = {
       const fromE164 = toE164(fromNumber);
       const toE = toE164(to);
 
-      // Verify permission (normalize DB numbers to E.164 before comparing)
       const candidates = await NumberModel.find({ $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
-      const has = candidates.some((n: any) => toE164(String(n.phoneNumber)) === fromE164);
-      if (!has) return res.status(403).json({ error: "Not allowed to use this number" });
+      const numberDoc = candidates.find((n: any) => toE164(String(n.phoneNumber)) === fromE164);
+      if (!numberDoc) return res.status(403).json({ error: "Not allowed to use this number" });
 
       const form = new URLSearchParams({ To: toE, From: fromE164, Body: String(body) });
       const resp = await swLaml(`/Messages.json`, { method: "POST", body: form as any });
+
+      await Message.create({
+        numberId: numberDoc._id,
+        ownerUserId: numberDoc.ownerUserId,
+        assignedToUserId: numberDoc.assignedToUserId,
+        from: fromE164,
+        to: toE,
+        body: String(body),
+        direction: "outbound",
+        providerSid: resp?.sid,
+        status: "sent",
+      });
+
       res.json({ ok: true, sid: resp.sid });
     } catch (e: any) {
       const msg = String(e?.message || e);
       const status = msg.includes("401") ? 401 : 502;
       res.status(status).json({ error: msg });
+    }
+  }) as RequestHandler,
+
+  history: (async (req, res) => {
+    try {
+      await connectDB();
+      const userId = (req as any).userId as string;
+      const number = toE164(String((req.query.number as string) || ""));
+      const other = toE164(String((req.query.with as string) || ""));
+      if (!number || !other) return res.status(400).json({ error: "number and with required" });
+
+      const allowed = await NumberModel.find({ $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
+      const numberDoc = allowed.find((n: any) => toE164(String(n.phoneNumber)) === number);
+      if (!numberDoc) return res.status(403).json({ error: "Not allowed" });
+
+      const messages = await Message.find({ numberId: numberDoc._id, $or: [{ to: other }, { from: other }] }).sort({ createdAt: 1 }).lean();
+      res.json({ messages });
+    } catch (e: any) {
+      const msg = String(e?.message || e);
+      res.status(500).json({ error: msg });
+    }
+  }) as RequestHandler,
+
+  incoming: (async (req, res) => {
+    try {
+      await connectDB();
+      const from = toE164(String((req.body?.From as string) || (req.body?.from as string) || ""));
+      const to = toE164(String((req.body?.To as string) || (req.body?.to as string) || ""));
+      const body = String((req.body?.Body as string) || (req.body?.body as string) || "");
+      const providerSid = String((req.body?.MessageSid as string) || (req.body?.messageSid as string) || "");
+      if (!from || !to || !body) {
+        res.status(200).send("OK");
+        return;
+      }
+
+      const numberDoc = await NumberModel.findOne({}).or([{ phoneNumber: to }, { phoneNumber: from }]).lean();
+      let targetNumber = numberDoc;
+      if (!targetNumber) {
+        const candidates = await NumberModel.find({}).lean();
+        targetNumber = candidates.find((n: any) => toE164(String(n.phoneNumber)) === to) || null;
+      }
+
+      await Message.create({
+        numberId: targetNumber?._id,
+        ownerUserId: targetNumber?.ownerUserId,
+        assignedToUserId: targetNumber?.assignedToUserId,
+        from,
+        to,
+        body,
+        direction: "inbound",
+        providerSid,
+        status: "received",
+      });
+
+      res.status(200).send("OK");
+    } catch (_e) {
+      res.status(200).send("OK");
     }
   }) as RequestHandler,
 };
