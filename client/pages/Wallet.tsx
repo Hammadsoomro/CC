@@ -13,14 +13,21 @@ export default function Wallet() {
   const [subs, setSubs] = useState<any[]>([]);
   const [toSub, setToSub] = useState<string>("");
   const [transferAmt, setTransferAmt] = useState<string>("");
-  const [depositOpen, setDepositOpen] = useState(false);
+  const [summary, setSummary] = useState<any>(null);
+  const [tx, setTx] = useState<any[]>([]);
 
   const load = async () => {
     const r = await fetch("/api/auth/me", { credentials: "include" });
     if (r.ok) setMe((await r.json()).user);
     const token = localStorage.getItem("jwt");
-    const s = await fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    const [s, wtx] = await Promise.all([
+      fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} }),
+      fetch("/api/wallet/transactions", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} }),
+    ]);
     if (s.ok) setSubs((await s.json()).subs || []);
+    if (wtx.ok) setTx((await wtx.json()).transactions || []);
+    const sum = await fetch("/api/wallet/summary", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (sum.ok) setSummary(await sum.json());
   };
   useEffect(() => { load(); }, []);
 
@@ -43,8 +50,8 @@ export default function Wallet() {
   };
 
   return (
-    <div className="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Card className="lg:col-span-2">
+    <div className="p-6 grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <Card className="xl:col-span-2">
         <CardHeader>
           <CardTitle>Wallet</CardTitle>
         </CardHeader>
@@ -55,19 +62,59 @@ export default function Wallet() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Add Funds</CardTitle>
+          <CardTitle>Monthly Rent</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Button className="w-full" asChild>
-              <a href="/deposit">Deposit</a>
-            </Button>
-            <div className="text-xs text-muted-foreground">Sub-accounts cannot deposit funds.</div>
+        <CardContent className="space-y-2">
+          <div className="text-sm text-muted-foreground">Total this month</div>
+          <div className="text-3xl font-bold">${summary?.total?.toFixed?.(2) ?? "0.00"}</div>
+          <div className="text-xs text-muted-foreground">Numbers: ${summary?.numbersRent?.toFixed?.(2) ?? "0.00"} | Package: ${summary?.planRent?.toFixed?.(2) ?? "0.00"}</div>
+          <div className="mt-2 space-y-1 text-xs">
+            {summary?.perNumber?.map((n: any) => (
+              <div key={n.phoneNumber} className="flex items-center justify-between">
+                <span>{n.phoneNumber}</span>
+                <span>${n.monthly.toFixed(2)}</span>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
+
+      <Card className="xl:col-span-3">
+        <CardHeader>
+          <CardTitle>Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tx.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No transactions yet.</div>
+          ) : (
+            <div className="overflow-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-muted-foreground">
+                    <th className="py-2 pr-4">Date</th>
+                    <th className="py-2 pr-4">Type</th>
+                    <th className="py-2 pr-4">Amount</th>
+                    <th className="py-2 pr-4">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tx.map((t: any) => (
+                    <tr key={t._id} className="border-t">
+                      <td className="py-2 pr-4">{new Date(t.createdAt).toLocaleString()}</td>
+                      <td className="py-2 pr-4 capitalize">{t.type}</td>
+                      <td className="py-2 pr-4">${Number(t.amount).toFixed(2)}</td>
+                      <td className="py-2 pr-4 truncate">{t?.meta?.kind === 'number' ? `Number ${t.meta.phoneNumber}` : t?.meta?.kind === 'plan' ? `Plan ${t.meta.plan}` : t?.meta?.stripePaymentIntentId ? `Stripe ${t.meta.stripePaymentIntentId}` : JSON.stringify(t.meta || {})}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {me?.role === "main" && (
-        <Card className="lg:col-span-3">
+        <Card className="xl:col-span-3">
           <CardHeader>
             <CardTitle>Transfer to Sub-Account</CardTitle>
           </CardHeader>
