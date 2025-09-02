@@ -161,6 +161,9 @@ export default function AppShell() {
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger />
+          <button className="text-xs text-muted-foreground hover:text-foreground" onClick={(e) => { e.preventDefault(); const btn = document.querySelector('[data-sidebar=trigger]') as HTMLButtonElement | null; btn?.click(); }}>
+            Hide
+          </button>
           <Link to="/" className="font-semibold">Connectlify</Link>
           <div className="ml-auto flex items-center gap-3">
             <div className="text-sm">Wallet: <span className="font-semibold">${me?.walletBalance?.toFixed?.(2) ?? "0.00"}</span></div>
