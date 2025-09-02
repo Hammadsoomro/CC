@@ -11,16 +11,24 @@ export default function Settings() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const nav = useNavigate();
+  const [role, setRole] = useState<string>("main");
 
   useEffect(() => {
     (async () => {
       try {
         const r = await fetch("/api/profile", { credentials: "include" });
-        if (!r.ok) return;
-        const d = await r.json();
-        setFirstName(d.user.firstName || "");
-        setLastName(d.user.lastName || "");
-        setPhone(d.user.phone || "");
+        if (r.ok) {
+          const d = await r.json();
+          setFirstName(d.user.firstName || "");
+          setLastName(d.user.lastName || "");
+          setPhone(d.user.phone || "");
+        }
+        const token = localStorage.getItem("jwt");
+        const me = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (me.ok) {
+          const md = await me.json();
+          setRole(md.user.role || "main");
+        }
       } catch {}
     })();
   }, []);
@@ -60,32 +68,10 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="space-y-3">
           <Button className="w-full" variant="outline" onClick={() => nav("/pricing")}>Manage Plan</Button>
-          <Button className="w-full" variant="outline" onClick={() => nav("/sub-accounts")}>Sub-Accounts</Button>
+          {role === "main" && (
+            <Button className="w-full" variant="outline" onClick={() => nav("/sub-accounts")}>Sub-Accounts</Button>
+          )}
           <Button className="w-full" variant="outline" onClick={() => nav("/wallet")}>Wallet</Button>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Add Existing Number</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div>
-            <Label htmlFor="num">Phone number (E.164 or local)</Label>
-            <Input id="num" placeholder="+1 249 444 0933" onKeyDown={(e) => { if (e.key === 'Enter') (document.getElementById('addNumBtn') as HTMLButtonElement)?.click(); }} />
-          </div>
-          <div>
-            <Label htmlFor="cty">Country</Label>
-            <Input id="cty" placeholder="US" defaultValue="US" />
-          </div>
-          <Button id="addNumBtn" onClick={async () => {
-            const phone_number = (document.getElementById('num') as HTMLInputElement)?.value?.trim();
-            const country = (document.getElementById('cty') as HTMLInputElement)?.value?.trim() || 'US';
-            if (!phone_number) { toast.error('Enter a phone number'); return; }
-            const token = localStorage.getItem('jwt');
-            const r = await fetch('/api/numbers/add-existing', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phone_number, country }) });
-            const d = await r.json().catch(() => ({}));
-            if (r.ok) { toast.success('Number added to your account'); } else { toast.error(d.error || 'Failed to add number'); }
-          }}>Add Number</Button>
         </CardContent>
       </Card>
     </div>
