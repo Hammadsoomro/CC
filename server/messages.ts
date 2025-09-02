@@ -119,7 +119,7 @@ export const messageRoutes = {
         return;
       }
 
-      const numberDoc = await NumberModel.findOne({}).or([{ phoneNumber: to }, { phoneNumber: from }]).lean();
+      const numberDoc = await NumberModel.findOne({ $or: [{ phoneNumber: to }, { phoneNumber: from }] }).lean();
       let targetNumber = numberDoc;
       if (!targetNumber) {
         const candidates = await NumberModel.find({}).lean();
