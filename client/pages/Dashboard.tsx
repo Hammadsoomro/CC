@@ -2,10 +2,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdsRail } from "@/components/layout/AdsRail";
 
 import { useEffect, useState } from "react";
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip as RTooltip, Bar, BarChart } from "recharts";
 
 export default function Dashboard() {
-  const [data, setData] = useState<any>({ walletBalance: 0, numbersCount: 0, totalSent: 0, series: [], recent: [] });
+  const [data, setData] = useState<any>({ walletBalance: 0, numbersCount: 0, totalSent: 0, recent: [] });
 
   useEffect(() => {
     (async () => {
