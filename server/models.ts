@@ -50,7 +50,24 @@ const TransactionSchema = new Schema(
   { timestamps: true }
 );
 
+const MessageSchema = new Schema(
+  {
+    numberId: { type: Schema.Types.ObjectId, ref: "Number", index: true },
+    ownerUserId: { type: Schema.Types.ObjectId, ref: "User", index: true },
+    assignedToUserId: { type: Schema.Types.ObjectId, ref: "User", index: true },
+    from: { type: String, required: true, index: true },
+    to: { type: String, required: true, index: true },
+    body: { type: String, required: true },
+    direction: { type: String, enum: ["inbound", "outbound"], required: true, index: true },
+    providerSid: { type: String },
+    status: { type: String },
+    error: { type: String },
+  },
+  { timestamps: true }
+);
+
 export const User = mongoose.models.User || mongoose.model("User", UserSchema);
 export const NumberModel = mongoose.models.Number || mongoose.model("Number", NumberSchema);
 export const Contact = mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
 export const Transaction = mongoose.models.Transaction || mongoose.model("Transaction", TransactionSchema);
+export const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
