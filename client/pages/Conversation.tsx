@@ -35,7 +35,10 @@ export default function Conversation() {
           <div className="p-4 space-y-3">
             {!current && <div className="text-sm text-muted-foreground">No conversation selected.</div>}
             {history.map((m, i) => (
-              <div key={i} className={`max-w-[65%] rounded-lg p-2 ${m.fromMe ? 'bg-primary text-primary-foreground ml-auto' : 'bg-muted'}`}>{m.body}</div>
+              <div key={i} className={`max-w-[65%] ${m.fromMe ? 'ml-auto text-right' : ''}`}>
+                <div className={`rounded-lg p-2 ${m.fromMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>{m.body}</div>
+                <div className="mt-1 text-[10px] text-muted-foreground">{new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
             ))}
           </div>
         </ScrollArea>
