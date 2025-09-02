@@ -27,6 +27,8 @@ export default function AppShell() {
   const [me, setMe] = useState<any>(null);
   const [numbers, setNumbers] = useState<any[]>([]);
   const [fromNumber, setFromNumber] = useState<string | undefined>(() => localStorage.getItem("fromNumber") || undefined);
+  const location = useLocation();
+
   useEffect(() => {
     (async () => {
       try {
@@ -45,6 +47,18 @@ export default function AppShell() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const n = await fetch("/api/numbers", { credentials: "include", headers: (() => { const t = localStorage.getItem("jwt"); return t ? { Authorization: `Bearer ${t}` } : {}; })() });
+        if (n.ok) {
+          const d = await n.json();
+          setNumbers(d.numbers || []);
+        }
+      } catch {}
+    })();
+  }, [location.pathname]);
 
   return (
     <SidebarProvider>
