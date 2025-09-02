@@ -60,9 +60,10 @@ export const messageRoutes = {
       const fromE164 = toE164(fromNumber);
       const toE = toE164(to);
 
-      // Verify permission against stored E.164
-      const allowed = await NumberModel.findOne({ phoneNumber: fromE164, $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
-      if (!allowed) return res.status(403).json({ error: "Not allowed to use this number" });
+      // Verify permission (normalize DB numbers to E.164 before comparing)
+      const candidates = await NumberModel.find({ $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
+      const has = candidates.some((n: any) => toE164(String(n.phoneNumber)) === fromE164);
+      if (!has) return res.status(403).json({ error: "Not allowed to use this number" });
 
       const form = new URLSearchParams({ To: toE, From: fromE164, Body: String(body) });
       const resp = await swLaml(`/Messages.json`, { method: "POST", body: form as any });
