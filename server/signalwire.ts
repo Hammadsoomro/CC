@@ -132,8 +132,11 @@ export const numberRoutes = {
 
       res.json({ ok: true });
     } catch (e: any) {
-      const msg = String(e?.message || e || "SignalWire error");
-      const status = msg.includes("401") ? 401 : 502;
+      const raw = String(e?.message || e || "SignalWire error");
+      const status = raw.includes("401") ? 401 : raw.includes("422") ? 400 : 502;
+      const msg = raw.includes("21212") || raw.toLowerCase().includes("invalid")
+        ? "Invalid number format or unavailable. Please choose another number/region."
+        : raw;
       res.status(status).json({ error: msg });
     }
   }) as RequestHandler,
