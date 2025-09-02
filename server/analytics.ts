@@ -44,7 +44,7 @@ export const analyticsRoutes = {
 
       const recent = await Message.find({ numberId: { $in: numberIds } })
         .sort({ createdAt: -1 })
-        .limit(5)
+        .limit(20)
         .select("from to body direction createdAt")
         .lean();
 
