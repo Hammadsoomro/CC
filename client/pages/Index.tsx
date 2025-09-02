@@ -64,7 +64,7 @@ export default function Index() {
 
         {/* Visual section */}
         <section className="mx-auto max-w-6xl pb-24">
-          <div className="rounded-2xl border bg-gradient-to-br from-primary/10 via-accent/10 to-transparent p-8">
+          <div className="rounded-2xl border bg-gradient-to-br from-fuchsia-200/30 via-cyan-200/30 to-transparent dark:from-fuchsia-500/10 dark:via-cyan-500/10 p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
               <div className="text-left">
                 <h2 className="text-2xl md:text-3xl font-bold">Themeable UI with Smooth Animations</h2>
@@ -79,8 +79,8 @@ export default function Index() {
                 </div>
               </div>
               <div className="relative h-64 md:h-72">
-                <div className="absolute inset-0 rounded-xl bg-background/60 border shadow-xl animate-[pulse_5s_ease-in-out_infinite]" />
-                <div className="absolute inset-4 rounded-xl bg-muted" />
+                <img src="https://cdn.builder.io/o/assets%2F14e837e0b7b5493ab1e1298323cf9f78%2F1396f8dcd3104269bd5562705f70d3f6?alt=media&token=f31eb4ff-5ba0-4b15-a128-1713396b817b&apiKey=14e837e0b7b5493ab1e1298323cf9f78" alt="Hero graphic" className="absolute inset-0 h-full w-full object-cover rounded-xl border shadow-xl" />
+                <div className="absolute -z-10 -inset-4 rounded-2xl bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl" />
               </div>
             </div>
           </div>
