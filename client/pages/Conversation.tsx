@@ -7,7 +7,7 @@ import ContactsPanel, { ContactItem } from "@/components/conversation/ContactsPa
 export default function Conversation() {
   const [message, setMessage] = useState("");
   const [current, setCurrent] = useState<ContactItem | null>(null);
-  const [history, setHistory] = useState<{ fromMe: boolean; body: string }[]>([]);
+  const [history, setHistory] = useState<{ fromMe: boolean; body: string; time: string }[]>([]);
 
   const send = async () => {
     const token = localStorage.getItem("jwt");
@@ -19,7 +19,8 @@ export default function Conversation() {
       import("sonner").then(({ toast }) => toast.error(data.error || "Failed to send"));
       return;
     }
-    setHistory((h) => [...h, { fromMe: true, body: message }]);
+    const now = new Date().toISOString();
+    setHistory((h) => [...h, { fromMe: true, body: message, time: now }]);
     setMessage("");
   };
 
