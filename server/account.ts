@@ -107,6 +107,10 @@ export const accountRoutes = {
     const received = (pi.amount_received ?? 0) / 100;
     if (!(received > 0)) return res.status(400).json({ error: "no amount received" });
     await User.updateOne({ _id: userId }, { $inc: { walletBalance: received } });
+    try {
+      const { Transaction } = await import("./models");
+      await Transaction.create({ userId, type: "deposit", amount: received, meta: { stripePaymentIntentId: paymentIntentId } });
+    } catch {}
     res.json({ ok: true, added: received });
   }) as RequestHandler,
 
@@ -130,6 +134,11 @@ export const accountRoutes = {
 
     await User.updateOne({ _id: main._id }, { $inc: { walletBalance: -amt } });
     await User.updateOne({ _id: sub._id }, { $inc: { walletBalance: amt } });
+    try {
+      const { Transaction } = await import("./models");
+      await Transaction.create({ userId: main._id, type: "transfer", amount: amt, meta: { toSubUserId: sub._id } });
+      await Transaction.create({ userId: sub._id, type: "transfer", amount: amt, meta: { fromMainUserId: main._id } });
+    } catch {}
     res.json({ ok: true });
   }) as RequestHandler,
 
@@ -185,6 +194,10 @@ export const accountRoutes = {
     if ((me.walletBalance ?? 0) < amount) return res.status(400).json({ error: "Insufficient wallet balance" });
 
     await User.updateOne({ _id: userId }, { $set: { plan: planKey }, $inc: { walletBalance: -amount } });
+    try {
+      const { Transaction } = await import("./models");
+      await Transaction.create({ userId, type: "purchase", amount, meta: { kind: "plan", plan: planKey } });
+    } catch {}
     res.json({ ok: true, plan: planKey });
   }) as RequestHandler,
 };

@@ -129,6 +129,10 @@ export const numberRoutes = {
 
       await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
       await NumberModel.create({ phoneNumber: e164, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
+      try {
+        const { Transaction } = await import("./models");
+        await Transaction.create({ userId, type: "purchase", amount: price, meta: { kind: "number", phoneNumber: e164, providerId: resp?.id } });
+      } catch {}
 
       res.json({ ok: true });
     } catch (e: any) {

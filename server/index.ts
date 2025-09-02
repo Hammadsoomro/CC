@@ -9,6 +9,8 @@ import { contactRoutes } from "./contacts";
 import { accountRoutes } from "./account";
 import { messageRoutes } from "./messages";
 import { listSubAccounts } from "./routes/subaccounts";
+import { analyticsRoutes } from "../server/analytics";
+import { walletRoutes } from "../server/wallet";
 
 export function createServer() {
   const app = express();
@@ -66,6 +68,13 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Analytics
+  app.get("/api/analytics/overview", requireAuth, analyticsRoutes.overview);
+
+  // Wallet extras
+  app.get("/api/wallet/transactions", requireAuth, walletRoutes.transactions);
+  app.get("/api/wallet/summary", requireAuth, walletRoutes.summary);
 
   // Global error handler to avoid crashing overlay
   app.use((err: any, _req, res, _next) => {
