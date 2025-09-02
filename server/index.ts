@@ -34,6 +34,8 @@ export function createServer() {
   app.post("/api/numbers/purchase", requireAuth, numberRoutes.purchase);
   app.get("/api/numbers", requireAuth, numberRoutes.myNumbers);
   app.post("/api/messages/send", requireAuth, messageRoutes.send);
+  app.get("/api/messages/history", requireAuth, messageRoutes.history);
+  app.post("/api/messages/incoming", messageRoutes.incoming);
   app.post("/api/numbers/assign", requireAuth, numberRoutes.assign);
   app.post("/api/numbers/unassign", requireAuth, numberRoutes.unassign);
   app.post("/api/numbers/add-existing", requireAuth, numberRoutes.addExisting);
