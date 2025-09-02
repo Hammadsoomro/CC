@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function Index() {
   return (
@@ -24,7 +25,11 @@ export default function Index() {
 
       <main className="px-6">
         <section className="mx-auto max-w-6xl py-20 text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">SMS Made Simple for Teams</h1>
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-500 bg-clip-text text-transparent">Connect the</h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 bg-clip-text text-transparent"> World </h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">Instantly</h1>
+          </div>
           <p className="mt-5 text-muted-foreground text-lg max-w-2xl mx-auto">
             Real-time conversations, wallet-based billing, sub-accounts, and number management powered by SignalWire.
           </p>
@@ -83,6 +88,12 @@ export default function Index() {
                 <div className="absolute -z-10 -inset-4 rounded-2xl bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl" />
               </div>
             </div>
+          </div>
+          <div className="mx-auto mt-10 flex justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4 text-zinc-700">
+              <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
           </div>
         </section>
       </main>
