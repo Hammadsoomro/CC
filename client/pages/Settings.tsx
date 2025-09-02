@@ -64,6 +64,30 @@ export default function Settings() {
           <Button className="w-full" variant="outline" onClick={() => nav("/wallet")}>Wallet</Button>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Existing Number</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label htmlFor="num">Phone number (E.164 or local)</Label>
+            <Input id="num" placeholder="+1 249 444 0933" onKeyDown={(e) => { if (e.key === 'Enter') (document.getElementById('addNumBtn') as HTMLButtonElement)?.click(); }} />
+          </div>
+          <div>
+            <Label htmlFor="cty">Country</Label>
+            <Input id="cty" placeholder="US" defaultValue="US" />
+          </div>
+          <Button id="addNumBtn" onClick={async () => {
+            const phone_number = (document.getElementById('num') as HTMLInputElement)?.value?.trim();
+            const country = (document.getElementById('cty') as HTMLInputElement)?.value?.trim() || 'US';
+            if (!phone_number) { toast.error('Enter a phone number'); return; }
+            const token = localStorage.getItem('jwt');
+            const r = await fetch('/api/numbers/add-existing', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phone_number, country }) });
+            const d = await r.json().catch(() => ({}));
+            if (r.ok) { toast.success('Number added to your account'); } else { toast.error(d.error || 'Failed to add number'); }
+          }}>Add Number</Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
