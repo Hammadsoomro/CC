@@ -1,13 +1,40 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ContactsPanel, { ContactItem } from "@/components/conversation/ContactsPanel";
 
 export default function Conversation() {
   const [message, setMessage] = useState("");
   const [current, setCurrent] = useState<ContactItem | null>(null);
   const [history, setHistory] = useState<{ fromMe: boolean; body: string; time: string }[]>([]);
+
+  const toE164 = (n: string) => {
+    const raw = String(n || "").trim();
+    if (!raw) return "";
+    if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) return "+1" + digits;
+    if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+    return "+" + digits;
+  };
+
+  useEffect(() => {
+    const run = async () => {
+      if (!current) { setHistory([]); return; }
+      const token = localStorage.getItem("jwt");
+      const from = localStorage.getItem("fromNumber") || "";
+      if (!from) { setHistory([]); return; }
+      const qs = new URLSearchParams({ number: from, with: current.phoneNumber }).toString();
+      const r = await fetch(`/api/messages/history?${qs}` as any, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      if (!r.ok) { setHistory([]); return; }
+      const d = await r.json();
+      const fromE = toE164(from);
+      const items = (d.messages || []).map((m: any) => ({ fromMe: m.from === fromE, body: m.body, time: m.createdAt }));
+      setHistory(items);
+    };
+    run();
+  }, [current]);
 
   const send = async () => {
     const token = localStorage.getItem("jwt");
