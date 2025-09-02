@@ -35,9 +35,18 @@ export const messageRoutes = {
       const me = await User.findById(userId).lean();
       if (!me) return res.status(401).json({ error: "Unauthorized" });
 
+      const toE164 = (n: string) => {
+        const raw = String(n || "").trim();
+        if (!raw) return "";
+        if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
+        const digits = raw.replace(/\D/g, "");
+        if (digits.length === 10) return "+1" + digits; // default country US if local 10-digit
+        if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+        return "+" + digits;
+      };
+
       let fromNumber = from as string | undefined;
       if (!fromNumber) {
-        // pick first allowed number
         if (me.role === "main") {
           const n = await NumberModel.findOne({ ownerUserId: userId }).lean();
           fromNumber = n?.phoneNumber;
@@ -48,11 +57,14 @@ export const messageRoutes = {
       }
       if (!fromNumber) return res.status(400).json({ error: "No sending number available" });
 
-      // Verify permission
-      const allowed = await NumberModel.findOne({ phoneNumber: fromNumber, $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
+      const fromE164 = toE164(fromNumber);
+      const toE = toE164(to);
+
+      // Verify permission against stored E.164
+      const allowed = await NumberModel.findOne({ phoneNumber: fromE164, $or: [{ ownerUserId: userId }, { assignedToUserId: userId }] }).lean();
       if (!allowed) return res.status(403).json({ error: "Not allowed to use this number" });
 
-      const form = new URLSearchParams({ To: to, From: fromNumber, Body: String(body) });
+      const form = new URLSearchParams({ To: toE, From: fromE164, Body: String(body) });
       const resp = await swLaml(`/Messages.json`, { method: "POST", body: form as any });
       res.json({ ok: true, sid: resp.sid });
     } catch (e: any) {
