@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { MessageSquare, Clock, Globe, Shield } from "lucide-react";
 
 export default function Index() {
   return (
