@@ -64,7 +64,7 @@ export default function Index() {
         </section>
 
         {/* Feature grid to lengthen landing page */}
-        <section className="mx-auto max-w-6xl pb-24">
+        <section className="mx-auto max-w-6xl pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -86,6 +86,29 @@ export default function Index() {
               </div>
               <h3 className="text-xl font-semibold text-zinc-900 text-center">Enterprise Security</h3>
               <p className="mt-2 text-sm text-zinc-600 text-center">Bank‑level encryption, compliance, and data protection for businesses.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Trusted by Thousands stats */}
+        <section className="mx-auto max-w-6xl pb-24 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">Trusted by Thousands</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+            <div>
+              <div className="text-4xl font-bold text-blue-600">10M+</div>
+              <div className="text-zinc-600">Messages Sent</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600">50+</div>
+              <div className="text-zinc-600">Countries</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600">99.9%</div>
+              <div className="text-zinc-600">Uptime</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600">24/7</div>
+              <div className="text-zinc-600">Support</div>
             </div>
           </div>
         </section>
@@ -117,6 +140,25 @@ export default function Index() {
               <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
               <circle cx="12" cy="12" r="3" />
             </svg>
+          </div>
+        </section>
+
+        {/* Secondary testimonial */}
+        <section className="mx-auto max-w-3xl pb-16">
+          <div className="relative mx-auto text-center rounded-2xl border border-zinc-200/50 bg-white/70 backdrop-blur-lg shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),_0_8px_10px_-6px_rgba(0,0,0,0.1)] px-6 py-8">
+            <div className="absolute left-1/2 -top-4 -translate-x-1/2">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 text-white">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+            </div>
+            <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7">“Good communication is the bridge between confusion and clarity.”</blockquote>
+            <p className="mt-3 text-sm font-medium text-zinc-500">— Nat Turner</p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 1" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 2" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 3" />
+              <button className="w-2 h-2 rounded-full bg-blue-600" aria-label="slide 4" />
+            </div>
           </div>
         </section>
       </main>
