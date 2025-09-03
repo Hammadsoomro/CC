@@ -10,6 +10,7 @@ import { accountRoutes } from "./account";
 import { messageRoutes } from "./messages";
 import { listSubAccounts } from "./routes/subaccounts";
 import { analyticsRoutes } from "./analytics";
+import { adminRoutes, requireAdmin, ensureAdminUser } from "./admin";
 import { walletRoutes } from "./wallet";
 
 export function createServer() {
@@ -30,6 +31,9 @@ export function createServer() {
   app.post("/api/auth/login", authRoutes.login);
   app.post("/api/auth/logout", authRoutes.logout);
   app.get("/api/auth/me", authRoutes.me);
+
+  // Ensure admin user exists if env configured
+  ensureAdminUser().catch(() => {});
 
   // Numbers (protected)
   app.get("/api/numbers/search", requireAuth, numberRoutes.search);
@@ -75,6 +79,17 @@ export function createServer() {
   // Wallet extras
   app.get("/api/wallet/transactions", requireAuth, walletRoutes.transactions);
   app.get("/api/wallet/summary", requireAuth, walletRoutes.summary);
+
+  // Admin routes
+  app.get("/api/admin/users", requireAdmin, adminRoutes.users);
+  app.get("/api/admin/users/:id", requireAdmin, adminRoutes.userDetail);
+  app.post("/api/admin/users/:id/wallet", requireAdmin, adminRoutes.walletAdjust);
+  app.delete("/api/admin/users/:id", requireAdmin, adminRoutes.deleteUser);
+  app.get("/api/admin/numbers", requireAdmin, adminRoutes.numbers);
+  app.post("/api/admin/numbers/assign", requireAdmin, adminRoutes.assignNumber);
+  app.post("/api/admin/numbers/unassign", requireAdmin, adminRoutes.unassignNumber);
+  app.post("/api/admin/numbers/transfer-ownership", requireAdmin, adminRoutes.transferOwnership);
+  app.post("/api/admin/messages/send", requireAdmin, adminRoutes.sendMessage);
 
   // Global error handler to avoid crashing overlay
   app.use((err: any, _req, res, _next) => {
