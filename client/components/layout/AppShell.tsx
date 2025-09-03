@@ -124,6 +124,16 @@ export default function AppShell() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                {me?.role === "admin" && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink to="/admin" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
+                        <Settings className="mr-2" />
+                        <span>Admin</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink to="/settings" className={({ isActive }) => isActive ? "data-[active=true]" : undefined}>
