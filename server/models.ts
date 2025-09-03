@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types } from "mongoose";
 
-export type Role = "main" | "sub";
+export type Role = "main" | "sub" | "admin";
 
 const UserSchema = new Schema(
   {
@@ -9,7 +9,7 @@ const UserSchema = new Schema(
     firstName: String,
     lastName: String,
     phone: String,
-    role: { type: String, enum: ["main", "sub"], default: "main" },
+    role: { type: String, enum: ["main", "sub", "admin"], default: "main" },
     parentUserId: { type: Schema.Types.ObjectId, ref: "User" },
     walletBalance: { type: Number, default: 0 },
     walletLimit: { type: Number },
