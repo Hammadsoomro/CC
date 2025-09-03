@@ -27,12 +27,12 @@ export default function Index() {
       <main className="px-6">
         <section className="mx-auto max-w-6xl py-20 text-center">
           <div className="space-y-1">
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-500 bg-clip-text text-transparent">Connect the</h1>
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-pink-500 via-rose-500 to-orange-400 bg-clip-text text-transparent"> World </h1>
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">Instantly</h1>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6"><span className="text-sky-600">Connect with</span></h1>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6"><span className="text-pink-600">Anyone</span></h1>
+            <h1 className="text-5xl md:text-7xl font-bold mb-6"><span className="text-emerald-500">Anywhere</span></h1>
           </div>
-          <p className="mt-5 text-muted-foreground text-lg max-w-2xl mx-auto">
-            Real-time conversations, wallet-based billing, sub-accounts, and number management powered by SignalWire.
+          <p className="mt-5 text-zinc-600 dark:text-zinc-300 text-lg max-w-2xl mx-auto">
+            Professional SMS messaging platform with real-time conversations, global reach, and enterprise-grade reliability. Start messaging the world today.
           </p>
           <div className="mt-8 flex items-center justify-center gap-4">
             <Button asChild size="lg">
@@ -42,29 +42,51 @@ export default function Index() {
               <Link to="/login">Login</Link>
             </Button>
           </div>
-          <div className="mt-10 text-sm text-muted-foreground">
-            By continuing you agree to our <Link to="/privacy" className="underline">Privacy Policy</Link> and <Link to="/terms" className="underline">Terms & Conditions</Link>.
+        </section>
+
+        {/* Testimonial / Quote card */}
+        <section className="mx-auto max-w-3xl pb-12">
+          <div className="relative mx-auto text-center rounded-2xl border border-zinc-200/50 bg-white/70 backdrop-blur-lg shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),_0_8px_10px_-6px_rgba(0,0,0,0.1)] px-6 py-8">
+            <div className="absolute left-1/2 -top-4 -translate-x-1/2">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 text-white">
+                <MessageSquare className="w-6 h-6" />
+              </div>
+            </div>
+            <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7">“Communication works for those who work at it.”</blockquote>
+            <p className="mt-3 text-sm font-medium text-zinc-500">— John Powell</p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 1" />
+              <button className="w-2 h-2 rounded-full bg-blue-600" aria-label="slide 2" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 3" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 4" />
+            </div>
           </div>
         </section>
 
         {/* Feature grid to lengthen landing page */}
         <section className="mx-auto max-w-6xl pb-24">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[{
-              title: "Conversations",
-              desc: "One inbox, faster replies with organized contacts.",
-            }, {
-              title: "Wallet Billing",
-              desc: "Prepaid balance with Stripe card payments.",
-            }, {
-              title: "Sub-Accounts",
-              desc: "Delegate safely with limits and number assignment.",
-            }].map((f) => (
-              <div key={f.title} className="rounded-xl border p-6 bg-card/50 backdrop-blur">
-                <div className="text-xl font-semibold">{f.title}</div>
-                <div className="mt-2 text-sm text-muted-foreground">{f.desc}</div>
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <Clock className="w-8 h-8 text-emerald-600" />
               </div>
-            ))}
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Real-time Messaging</h3>
+              <p className="mt-2 text-sm text-zinc-600 text-center">Instant delivery with typing indicators, read receipts, and real-time sync across devices.</p>
+            </div>
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                <Globe className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Global Reach</h3>
+              <p className="mt-2 text-sm text-zinc-600 text-center">Numbers in 50+ countries with competitive pricing and instant activation.</p>
+            </div>
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
+                <Shield className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Enterprise Security</h3>
+              <p className="mt-2 text-sm text-zinc-600 text-center">Bank‑level encryption, compliance, and data protection for businesses.</p>
+            </div>
           </div>
         </section>
 
@@ -100,9 +122,8 @@ export default function Index() {
       </main>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
-        <div className="space-x-4">
-          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
-          <Link to="/terms" className="hover:underline">Terms & Conditions</Link>
+        <div className="text-sm text-muted-foreground">
+          By continuing you agree to our <Link to="/privacy" className="underline">Privacy Policy</Link> and <Link to="/terms" className="underline">Terms & Conditions</Link>.
         </div>
         <div className="mt-2">© {new Date().getFullYear()} Connectlify</div>
       </footer>
