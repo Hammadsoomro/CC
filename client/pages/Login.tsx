@@ -48,13 +48,22 @@ export default function Login() {
   const [open, setOpen] = useState(false);
   const [reqError, setReqError] = useState<string | null>(null);
 
+  const [loginError, setLoginError] = useState<string | null>(null);
   const onSubmit = async (values: Values) => {
-    const data = await api<{ token: string }>("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email: values.email, password: values.password }),
-    });
-    if (data?.token) localStorage.setItem("jwt", data.token);
-    navigate("/dashboard");
+    setLoginError(null);
+    try {
+      const data = await api<{ token: string }>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: values.email, password: values.password }),
+      });
+      if (data?.token) localStorage.setItem("jwt", data.token);
+      navigate("/dashboard");
+    } catch (e: any) {
+      const msg = String(e?.message || e);
+      if (/email not registered/i.test(msg)) setLoginError("Email not registered");
+      else if (/invalid credentials/i.test(msg)) setLoginError("Invalid email or password");
+      else setLoginError(msg);
+    }
   };
 
   return (
@@ -75,6 +84,9 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold mt-2">Login</h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back</p>
+          {loginError && (
+            <div className="mt-3 text-sm text-red-600" role="alert">{loginError}</div>
+          )}
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
