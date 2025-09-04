@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
 import { useEffect, useState } from "react";
@@ -30,6 +30,21 @@ export default function Wallet() {
     if (sum.ok) setSummary(await sum.json());
   };
   useEffect(() => { load(); }, []);
+
+  const startJazz = async () => {
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/wallet/jazzcash/start", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { toast.error(data.error || "Unable to start JazzCash"); return; }
+    toast.success("Request created. Follow JazzCash flow.");
+  };
+  const startEasy = async () => {
+    const token = localStorage.getItem("jwt");
+    const res = await fetch("/api/wallet/easypaisa/start", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { toast.error(data.error || "Unable to start EasyPaisa"); return; }
+    toast.success("Request created. Follow EasyPaisa flow.");
+  };
 
   const deposit = async () => {
     const token = localStorage.getItem("jwt");
@@ -76,6 +91,21 @@ export default function Wallet() {
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Add Funds</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-3">
+            <Label htmlFor="amount">Amount</Label>
+            <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </div>
+          <Button onClick={() => window.location.href = "/deposit"} variant="default">Debit/Credit Card</Button>
+          <Button onClick={startJazz} variant="outline">JazzCash</Button>
+          <Button onClick={startEasy} variant="secondary">EasyPaisa</Button>
         </CardContent>
       </Card>
 
