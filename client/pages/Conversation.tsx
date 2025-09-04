@@ -36,6 +36,23 @@ export default function Conversation() {
     run();
   }, [current]);
 
+  useEffect(() => {
+    const onNew = (e: any) => {
+      const d = e?.detail || {};
+      if (!current) return;
+      const from = localStorage.getItem("fromNumber") || "";
+      const fromE = toE164(from);
+      const other = toE164(current.phoneNumber);
+      const a = toE164(String(d.from || ""));
+      const b = toE164(String(d.to || ""));
+      const belongs = (a === fromE && b === other) || (b === fromE && a === other);
+      if (!belongs) return;
+      setHistory((h) => [...h, { fromMe: a === fromE, body: String(d.body || ""), time: d.createdAt || new Date().toISOString() }]);
+    };
+    window.addEventListener("sms:new", onNew as any);
+    return () => window.removeEventListener("sms:new", onNew as any);
+  }, [current]);
+
   const send = async () => {
     const token = localStorage.getItem("jwt");
     const from = localStorage.getItem("fromNumber") || undefined;
