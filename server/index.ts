@@ -102,6 +102,7 @@ export function createServer() {
     walletRoutes.startEasyPaisa,
   );
   app.post("/api/wallet/jazzcash/ipn", walletRoutes.jazzcashIPN);
+  app.post("/api/wallet/jazzcash/return", walletRoutes.jazzcashReturn);
 
   // Admin routes
   app.get("/api/admin/users", requireAdmin, adminRoutes.users);
