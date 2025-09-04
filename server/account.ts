@@ -54,7 +54,7 @@ export const accountRoutes = {
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can deposit" });
+    if (!me) return res.status(401).json({ error: "Unauthorized" });
     const { amount } = req.body || {};
     const domain = `${req.protocol}://${req.get("host")}`;
     const session = await stripe.checkout.sessions.create({
@@ -82,10 +82,12 @@ export const accountRoutes = {
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can deposit" });
+    if (!me) return res.status(401).json({ error: "Unauthorized" });
     const { amount } = req.body || {};
     const amt = Math.round(Number(amount) * 100);
     if (!(amt > 0)) return res.status(400).json({ error: "invalid amount" });
+    const { Checkout } = await import("./models");
+    await Checkout.create({ userId, amount: amt / 100, method: "card", status: "initiated", meta: {} });
     const pi = await stripe.paymentIntents.create({
       amount: amt,
       currency: "usd",
