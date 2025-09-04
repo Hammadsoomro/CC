@@ -1,18 +1,22 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AdsRail } from "@/components/layout/AdsRail";
+import { MarketingSidebar } from "@/components/layout/MarketingSidebar";
 import { MessageSquare, Clock, Globe, Shield } from "lucide-react";
 
 export default function Index() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
+      <div className="flex">
+        <MarketingSidebar />
+        <div className="flex-1 min-w-0">
       {/* Animated background accents */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl animate-pulse" />
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
       </div>
 
-      <header className="flex items-center justify-between px-6 py-4 border-b">
+      <header className="flex items-center justify-between px-6 py-4 border-b bg-zinc-50">
         <button
           className="text-lg font-bold"
           onClick={async () => {
@@ -47,7 +51,7 @@ export default function Index() {
           <AdsRail position="left" />
           <AdsRail position="right" />
         </div>
-        <section className="mx-auto max-w-6xl py-20 text-center">
+        <section id="hero" className="mx-auto max-w-6xl py-20 text-center">
           <div className="space-y-1">
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="text-sky-600">Connect with</span>
@@ -110,7 +114,7 @@ export default function Index() {
         </section>
 
         {/* Feature grid to lengthen landing page */}
-        <section className="mx-auto max-w-6xl pb-12">
+        <section id="features" className="mx-auto max-w-6xl pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
@@ -152,7 +156,7 @@ export default function Index() {
         </section>
 
         {/* Pricing */}
-        <section className="mx-auto max-w-6xl pb-16">
+        <section id="pricing" className="mx-auto max-w-6xl pb-16">
           <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
             Simple, transparent pricing
           </h2>
@@ -251,6 +255,8 @@ export default function Index() {
         </div>
         <div className="mt-2">© {new Date().getFullYear()} Connectlify</div>
       </footer>
+        </div>
+      </div>
     </div>
   );
 }
