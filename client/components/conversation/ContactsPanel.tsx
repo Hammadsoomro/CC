@@ -22,6 +22,23 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
     setContacts(data.contacts || []);
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const onNew = (e: any) => {
+      const d = e?.detail || {};
+      const phone = String(d.from || d.to || "");
+      if (!phone) return;
+      setContacts((cs) => {
+        const idx = cs.findIndex((c) => (c.phoneNumber?.replace(/\s|\(|\)|-/g, "") === phone) || (c.phoneNumber === phone));
+        if (idx <= 0) return cs;
+        const copy = cs.slice();
+        const [item] = copy.splice(idx, 1);
+        copy.unshift(item);
+        return copy;
+      });
+    };
+    window.addEventListener("sms:new", onNew as any);
+    return () => window.removeEventListener("sms:new", onNew as any);
+  }, []);
 
   const add = async () => {
     if (!newPhone.trim()) return;
