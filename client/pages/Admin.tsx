@@ -37,17 +37,27 @@ export default function Admin() {
   }, [nav]);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
+    <div className="p-4 relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-20 -left-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
+        <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl animate-[float_10s_ease-in-out_infinite]" />
+      </div>
+      <h1 className="text-2xl font-bold mb-4 animate-[fadeInUp_0.5s_ease-out]">Admin Panel</h1>
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="animate-[fadeInUp_0.6s_ease-out]">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="numbers">Numbers</TabsTrigger>
           <TabsTrigger value="send">Send SMS</TabsTrigger>
         </TabsList>
-        <TabsContent value="users"><UsersTab /></TabsContent>
-        <TabsContent value="numbers"><NumbersTab /></TabsContent>
-        <TabsContent value="send"><SendTab /></TabsContent>
+        <TabsContent value="users" className="animate-[fadeInUp_0.4s_ease-out]">
+          <UsersTab />
+        </TabsContent>
+        <TabsContent value="numbers" className="animate-[fadeInUp_0.4s_ease-out]">
+          <NumbersTab />
+        </TabsContent>
+        <TabsContent value="send" className="animate-[fadeInUp_0.4s_ease-out]">
+          <SendTab />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -98,7 +108,7 @@ function UsersTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-      <Card className="xl:col-span-2">
+      <Card className="xl:col-span-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
         <CardHeader><CardTitle>All Users</CardTitle></CardHeader>
         <CardContent>
           {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
@@ -232,7 +242,7 @@ function NumbersTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-      <Card className="xl:col-span-2">
+      <Card className="xl:col-span-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
         <CardHeader><CardTitle>All Numbers</CardTitle></CardHeader>
         <CardContent>
           {error && <div className="text-sm text-red-600 mb-2">{error}</div>}

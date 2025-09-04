@@ -21,15 +21,20 @@ export const requireAdmin: RequestHandler = async (req, res, next) => {
 
 export async function ensureAdminUser() {
   await connectDB();
-  const email = process.env.ADMIN_EMAIL?.trim();
+  const raw = process.env.ADMIN_EMAIL?.trim();
   const pwd = process.env.ADMIN_PASSWORD?.trim();
-  if (!email || !pwd) return;
+  if (!raw || !pwd) return;
+  const email = raw.toLowerCase();
+  const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   let admin = await User.findOne({ email }).lean();
   if (!admin) {
-    const passwordHash = await bcrypt.hash(pwd, 10);
-    admin = await User.create({ email, passwordHash, role: "admin", firstName: "Admin", lastName: "" });
-  } else if (admin.role !== "admin") {
-    await User.updateOne({ _id: admin._id }, { $set: { role: "admin" } });
+    admin = await User.findOne({ email: { $regex: new RegExp(`^${escape(email)}$`, "i") } }).lean();
+  }
+  const passwordHash = await bcrypt.hash(pwd, 10);
+  if (!admin) {
+    await User.create({ email, passwordHash, role: "admin", firstName: "Admin", lastName: "" });
+  } else {
+    await User.updateOne({ _id: admin._id }, { $set: { role: "admin", email, passwordHash } });
   }
 }
 

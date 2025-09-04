@@ -33,11 +33,12 @@ export const authRoutes = {
   signup: (async (req, res) => {
     await connectDB();
     const { email, password, firstName, lastName, phone } = req.body || {};
-    if (!email || !password) return res.status(400).json({ error: "email and password required" });
-    const exists = await User.findOne({ email });
+    const e = String(email || "").trim().toLowerCase();
+    if (!e || !password) return res.status(400).json({ error: "email and password required" });
+    const exists = await User.findOne({ email: e });
     if (exists) return res.status(400).json({ error: "email already registered" });
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email, passwordHash, firstName, lastName, phone, role: "main" });
+    const user = await User.create({ email: e, passwordHash, firstName, lastName, phone, role: "main" });
     const token = signToken({ userId: user._id.toString() });
     res.cookie(COOKIE_NAME, token, cookieOpts);
     res.json({ token, user: { id: user._id, email: user.email, firstName, lastName, role: user.role } });
@@ -45,7 +46,8 @@ export const authRoutes = {
   login: (async (req, res) => {
     await connectDB();
     const { email, password } = req.body || {};
-    const user = await User.findOne({ email });
+    const e = String(email || "").trim().toLowerCase();
+    const user = await User.findOne({ email: e });
     if (!user) return res.status(400).json({ error: "invalid credentials" });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(400).json({ error: "invalid credentials" });
