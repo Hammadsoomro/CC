@@ -49,13 +49,13 @@ export default function Index() {
         </div>
         <section id="hero" className="mx-auto max-w-6xl py-20 text-center">
           <div className="space-y-1">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold mb-2 animate-fade-in-up" style={{ animationDelay: "0ms" }}>
               <span className="text-emerald-700">Connect with</span>
             </h1>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold mb-2 animate-fade-in-up" style={{ animationDelay: "120ms" }}>
               <span className="text-emerald-600">Anyone</span>
             </h1>
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
+            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in-up" style={{ animationDelay: "240ms" }}>
               <span className="text-emerald-500">Anywhere</span>
             </h1>
           </div>
