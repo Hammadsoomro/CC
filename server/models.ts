@@ -66,8 +66,22 @@ const MessageSchema = new Schema(
   { timestamps: true }
 );
 
+const PasswordRequestSchema = new Schema(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", index: true },
+    email: { type: String, required: true, index: true },
+    phone: { type: String },
+    firstName: { type: String },
+    lastName: { type: String },
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", index: true },
+    reason: { type: String },
+  },
+  { timestamps: true }
+);
+
 export const User = mongoose.models.User || mongoose.model("User", UserSchema);
 export const NumberModel = mongoose.models.Number || mongoose.model("Number", NumberSchema);
 export const Contact = mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
 export const Transaction = mongoose.models.Transaction || mongoose.model("Transaction", TransactionSchema);
 export const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
+export const PasswordRequest = mongoose.models.PasswordRequest || mongoose.model("PasswordRequest", PasswordRequestSchema);
