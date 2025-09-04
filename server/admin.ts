@@ -1,7 +1,7 @@
 import { RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import { connectDB } from "./db";
-import { NumberModel, Transaction, User, Message } from "./models";
+import { NumberModel, Transaction, User, Message, PasswordRequest } from "./models";
 import { verifyToken } from "./auth";
 
 export const requireAdmin: RequestHandler = async (req, res, next) => {
@@ -199,6 +199,45 @@ export const adminRoutes = {
     if (owned > 0) return res.status(400).json({ error: "User owns numbers; transfer ownership before deletion" });
     await User.deleteOne({ _id: id });
     await NumberModel.updateMany({ assignedToUserId: id }, { $unset: { assignedToUserId: 1 } });
+    res.json({ ok: true });
+  }) as RequestHandler,
+
+  setUserPassword: (async (req, res) => {
+    await connectDB();
+    const { id } = req.params as any;
+    const { newPassword } = req.body || {};
+    if (!newPassword || String(newPassword).length < 6) return res.status(400).json({ error: "password too short" });
+    const passwordHash = await bcrypt.hash(String(newPassword), 10);
+    await User.updateOne({ _id: id }, { $set: { passwordHash } });
+    res.json({ ok: true });
+  }) as RequestHandler,
+
+  listPasswordRequests: (async (_req, res) => {
+    await connectDB();
+    const reqs = await PasswordRequest.find({ status: "pending" }).sort({ createdAt: -1 }).lean();
+    res.json({ requests: reqs });
+  }) as RequestHandler,
+
+  approvePasswordRequest: (async (req, res) => {
+    await connectDB();
+    const { id } = req.params as any;
+    const { newPassword } = req.body || {};
+    if (!newPassword || String(newPassword).length < 6) return res.status(400).json({ error: "password too short" });
+    const pr = await PasswordRequest.findById(id).lean();
+    if (!pr || pr.status !== "pending") return res.status(404).json({ error: "request not found" });
+    const user = await User.findById(pr.userId).lean();
+    if (!user) return res.status(404).json({ error: "user not found" });
+    const passwordHash = await bcrypt.hash(String(newPassword), 10);
+    await User.updateOne({ _id: user._id }, { $set: { passwordHash } });
+    await PasswordRequest.updateOne({ _id: id }, { $set: { status: "approved" } });
+    res.json({ ok: true });
+  }) as RequestHandler,
+
+  rejectPasswordRequest: (async (req, res) => {
+    await connectDB();
+    const { id } = req.params as any;
+    const { reason } = req.body || {};
+    await PasswordRequest.updateOne({ _id: id }, { $set: { status: "rejected", reason: reason || "" } });
     res.json({ ok: true });
   }) as RequestHandler,
 };
