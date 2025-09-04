@@ -29,13 +29,17 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
   const password = process.env.JAZZCASH_PASSWORD || "";
   const salt = process.env.JAZZCASH_INTEGRITY_SALT || "";
   const returnURL = process.env.JAZZCASH_RETURN_URL || "";
-  const ipnURL = process.env.JAZZCASH_IPN_URL || "";
-
   if (!merchantId || !password || !salt || !returnURL) throw new Error("JazzCash env missing");
 
   const txnRefNo = `T${Date.now()}${Math.floor(Math.random() * 10000)}`;
   const billRef = String(opts.checkoutId);
   const amountPaisa = Math.round(opts.amount * 100);
+
+  const now = nowTimestamp();
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const expiry = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 
   const params: Record<string, string> = {
     pp_Version: "1.1",
@@ -46,16 +50,49 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
     pp_TxnRefNo: txnRefNo,
     pp_Amount: String(amountPaisa),
     pp_TxnCurrency: "PKR",
-    pp_TxnDateTime: nowTimestamp(),
+    pp_TxnDateTime: now,
+    pp_TxnExpiryDateTime: expiry,
     pp_BillReference: billRef,
     pp_Description: "Wallet Top-up",
     pp_ReturnURL: returnURL,
+    pp_SubMerchantID: "",
+    ppmpf_1: "",
+    ppmpf_2: "",
+    ppmpf_3: "",
+    ppmpf_4: "",
+    ppmpf_5: "",
   };
-  if (ipnURL) params["pp_SecureHashType"] = "SHA256";
 
-  const sortedKeys = Object.keys(params).sort();
-  const canonical = sortedKeys.map((k) => `${k}=${params[k]}`).join("&");
-  const pp_SecureHash = hmacSha256Hex(salt, canonical);
+  const order = [
+    "pp_Amount",
+    "pp_BillReference",
+    "pp_Description",
+    "pp_Language",
+    "pp_MerchantID",
+    "pp_Password",
+    "pp_ReturnURL",
+    "pp_SubMerchantID",
+    "pp_TxnCurrency",
+    "pp_TxnDateTime",
+    "pp_TxnExpiryDateTime",
+    "pp_TxnRefNo",
+    "pp_TxnType",
+    "pp_Version",
+    "ppmpf_1",
+    "ppmpf_2",
+    "ppmpf_3",
+    "ppmpf_4",
+    "ppmpf_5",
+  ];
+
+  const values: string[] = [];
+  values.push(salt);
+  for (const key of order) {
+    const v = params[key];
+    if (v !== undefined && v !== null && String(v) !== "") values.push(String(v));
+  }
+  const dataToHash = values.join("&");
+  const pp_SecureHash = hmacSha256Hex(salt, dataToHash);
 
   return { endpoint, params: { ...params, pp_SecureHash } };
 }
