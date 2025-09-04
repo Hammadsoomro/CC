@@ -254,6 +254,46 @@ export const walletRoutes = {
     }
   }) as RequestHandler,
 
+  jazzcashReturn: (async (req, res) => {
+    try {
+      await connectDB();
+      const body = (req as any).body || {};
+      const { Checkout } = await import("./models");
+      const billRef = String(body.pp_BillReference || "");
+      const responseCode = String(body.pp_ResponseCode || "");
+      const responseMessage = String(body.pp_ResponseMessage || "");
+      const rrn = String(body.pp_RetreivalReferenceNo || "");
+
+      if (billRef) {
+        try {
+          const checkout = await Checkout.findById(new mongoose.Types.ObjectId(billRef));
+          if (checkout) {
+            const ok = verifyJazzCashHash(body);
+            const success = responseCode === "000";
+            checkout.meta = { ...(checkout.meta || {}), return: body };
+            if (ok && success && checkout.status !== "succeeded") {
+              checkout.status = "succeeded";
+              await checkout.save();
+              const amount = Number(checkout.amount);
+              await User.updateOne({ _id: checkout.userId }, { $inc: { walletBalance: amount } });
+              await Transaction.create({ userId: checkout.userId, type: "deposit", amount, meta: { method: "jazzcash", txnRefNo: body.pp_TxnRefNo, billRef: body.pp_BillReference } });
+            } else if (ok && !success && checkout.status !== "failed") {
+              checkout.status = "failed";
+              await checkout.save();
+            } else {
+              await checkout.save();
+            }
+          }
+        } catch {}
+      }
+
+      const q = new URLSearchParams({ rcode: responseCode, rmsg: responseMessage, rrn });
+      res.redirect(`/wallet?${q.toString()}`);
+    } catch {
+      res.redirect("/wallet?rcode=ERR&rmsg=Payment%20processing%20error");
+    }
+  }) as RequestHandler,
+
   startEasyPaisa: (async (req, res) => {
     try {
       await connectDB();
