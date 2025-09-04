@@ -47,6 +47,7 @@ export default function AppShell() {
     () => localStorage.getItem("fromNumber") || undefined,
   );
   const location = useLocation();
+  const [unread, setUnread] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -94,6 +95,19 @@ export default function AppShell() {
     })();
   }, [location.pathname]);
 
+  useEffect(() => {
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource("/api/messages/stream");
+      es.addEventListener("message", async (ev: MessageEvent) => {
+        setUnread((u) => u + 1);
+        try { const { toast } = await import("sonner"); toast.success("New SMS received"); } catch {}
+        window.dispatchEvent(new CustomEvent("sms:new", { detail: (() => { try { return JSON.parse(ev.data); } catch { return {}; } })() }));
+      });
+    } catch {}
+    return () => { try { es?.close(); } catch {} };
+  }, []);
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -131,6 +145,9 @@ export default function AppShell() {
                     >
                       <MessageSquare className="mr-2" />
                       <span>Conversations</span>
+                      {unread > 0 && (
+                        <span className="ml-2 inline-flex items-center justify-center rounded-full bg-rose-600 text-white text-[10px] px-1.5 h-4 min-w-4">{unread}</span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
