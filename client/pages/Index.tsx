@@ -12,7 +12,19 @@ export default function Index() {
       </div>
 
       <header className="flex items-center justify-between px-6 py-4 border-b">
-        <Link to="/" className="text-lg font-bold">Connectlify</Link>
+        <button
+          className="text-lg font-bold"
+          onClick={async () => {
+            try {
+              const token = localStorage.getItem("jwt");
+              const r = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+              if (r.ok) { window.location.href = "/dashboard"; return; }
+            } catch {}
+            window.location.href = "/";
+          }}
+        >
+          Connectlify
+        </button>
         <nav className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <Link to="/login">Login</Link>
@@ -89,6 +101,49 @@ export default function Index() {
           </div>
         </section>
 
+        {/* Pricing */}
+        <section className="mx-auto max-w-6xl pb-16">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">Simple, transparent pricing</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="rounded-xl border p-6 bg-white/70">
+              <h3 className="text-xl font-semibold">Starter</h3>
+              <div className="mt-2 text-3xl font-bold">$9<span className="text-base font-medium text-zinc-500">/mo</span></div>
+              <ul className="mt-4 text-sm text-zinc-600 space-y-1">
+                <li>1 number</li>
+                <li>Basic features</li>
+                <li>Email support</li>
+              </ul>
+              <div className="mt-6">
+                <Button asChild className="w-full"><Link to="/signup">Choose Starter</Link></Button>
+              </div>
+            </div>
+            <div className="rounded-xl border p-6 bg-white">
+              <h3 className="text-xl font-semibold">Professional</h3>
+              <div className="mt-2 text-3xl font-bold">$19<span className="text-base font-medium text-zinc-500">/mo</span></div>
+              <ul className="mt-4 text-sm text-zinc-600 space-y-1">
+                <li>Up to 5 numbers</li>
+                <li>Advanced features</li>
+                <li>Priority support</li>
+              </ul>
+              <div className="mt-6">
+                <Button asChild className="w-full"><Link to="/signup">Choose Professional</Link></Button>
+              </div>
+            </div>
+            <div className="rounded-xl border p-6 bg-white/70">
+              <h3 className="text-xl font-semibold">Enterprise</h3>
+              <div className="mt-2 text-3xl font-bold">$49<span className="text-base font-medium text-zinc-500">/mo</span></div>
+              <ul className="mt-4 text-sm text-zinc-600 space-y-1">
+                <li>Unlimited numbers</li>
+                <li>All features</li>
+                <li>Dedicated support</li>
+              </ul>
+              <div className="mt-6">
+                <Button asChild className="w-full"><Link to="/signup">Choose Enterprise</Link></Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Trusted by Thousands stats */}
         <section className="mx-auto max-w-6xl pb-24 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">Trusted by Thousands</h2>
@@ -112,54 +167,7 @@ export default function Index() {
           </div>
         </section>
 
-        {/* Visual section */}
-        <section className="mx-auto max-w-6xl pb-24">
-          <div className="rounded-2xl border bg-gradient-to-br from-fuchsia-200/30 via-cyan-200/30 to-transparent dark:from-fuchsia-500/10 dark:via-cyan-500/10 p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="text-left">
-                <h2 className="text-2xl md:text-3xl font-bold">Themeable UI with Smooth Animations</h2>
-                <p className="mt-3 text-muted-foreground">Built with TailwindCSS and Radix UI. Dark mode ready and fast by default.</p>
-                <div className="mt-6 flex gap-3">
-                  <Button asChild>
-                    <Link to="/signup">Start Free</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/pricing">View Pricing</Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="relative h-64 md:h-72">
-                <img src="https://cdn.builder.io/o/assets%2F14e837e0b7b5493ab1e1298323cf9f78%2F1396f8dcd3104269bd5562705f70d3f6?alt=media&token=f31eb4ff-5ba0-4b15-a128-1713396b817b&apiKey=14e837e0b7b5493ab1e1298323cf9f78" alt="Hero graphic" className="absolute inset-0 h-full w-full object-cover rounded-xl border shadow-xl" />
-                <div className="absolute -z-10 -inset-4 rounded-2xl bg-gradient-to-tr from-primary/20 to-accent/20 blur-2xl" />
-              </div>
-            </div>
-          </div>
-          <div className="mx-auto mt-10 flex justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4 text-zinc-700">
-              <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </div>
-        </section>
 
-        {/* Secondary testimonial */}
-        <section className="mx-auto max-w-3xl pb-16">
-          <div className="relative mx-auto text-center rounded-2xl border border-zinc-200/50 bg-white/70 backdrop-blur-lg shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),_0_8px_10px_-6px_rgba(0,0,0,0.1)] px-6 py-8">
-            <div className="absolute left-1/2 -top-4 -translate-x-1/2">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 text-white">
-                <MessageSquare className="w-6 h-6" />
-              </div>
-            </div>
-            <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7">“Good communication is the bridge between confusion and clarity.”</blockquote>
-            <p className="mt-3 text-sm font-medium text-zinc-500">— Nat Turner</p>
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 1" />
-              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 2" />
-              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 3" />
-              <button className="w-2 h-2 rounded-full bg-blue-600" aria-label="slide 4" />
-            </div>
-          </div>
-        </section>
       </main>
 
       <footer className="border-t py-8 text-center text-sm text-muted-foreground">
