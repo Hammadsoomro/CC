@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label as UILabel } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -96,20 +97,20 @@ export default function Login() {
                 })} className="space-y-3">
                   {reqError && <div className="text-sm text-red-600">{reqError}</div>}
                   <div>
-                    <FormLabel>Email</FormLabel>
+                    <UILabel>Email</UILabel>
                     <Input type="email" {...reqForm.register("email", { required: true })} />
                   </div>
                   <div>
-                    <FormLabel>Phone</FormLabel>
+                    <UILabel>Phone</UILabel>
                     <Input {...reqForm.register("phone", { required: true })} />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <FormLabel>First name</FormLabel>
+                      <UILabel>First name</UILabel>
                       <Input {...reqForm.register("firstName")} />
                     </div>
                     <div>
-                      <FormLabel>Last name</FormLabel>
+                      <UILabel>Last name</UILabel>
                       <Input {...reqForm.register("lastName")} />
                     </div>
                   </div>
