@@ -100,17 +100,44 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
 function verifyJazzCashHash(payload: Record<string, any>) {
   const salt = process.env.JAZZCASH_INTEGRITY_SALT || "";
   if (!salt) return false;
-  const data: Record<string, string> = {};
-  for (const k in payload) {
-    if (k === "pp_SecureHash") continue;
-    if (k.startsWith("pp_")) data[k] = String(payload[k]);
+
+  const order = [
+    "pp_Amount",
+    "pp_BillReference",
+    "pp_Description",
+    "pp_Language",
+    "pp_MerchantID",
+    "pp_Password",
+    "pp_ReturnURL",
+    "pp_SubMerchantID",
+    "pp_TxnCurrency",
+    "pp_TxnDateTime",
+    "pp_TxnExpiryDateTime",
+    "pp_TxnRefNo",
+    "pp_TxnType",
+    "pp_Version",
+    "ppmpf_1",
+    "ppmpf_2",
+    "ppmpf_3",
+    "ppmpf_4",
+    "ppmpf_5",
+  ];
+  const values: string[] = [];
+  values.push(salt);
+  for (const key of order) {
+    const v = payload[key];
+    if (v !== undefined && v !== null && String(v) !== "") values.push(String(v));
   }
-  const canonical = Object.keys(data)
-    .sort()
-    .map((k) => `${k}=${data[k]}`)
-    .join("&");
-  const expected = hmacSha256Hex(salt, canonical);
-  return expected === String(payload["pp_SecureHash"]).toUpperCase();
+  const dataToHash = values.join("&");
+  const expected = hmacSha256Hex(salt, dataToHash);
+  const provided = String(payload["pp_SecureHash"] || "").toUpperCase();
+  if (expected === provided) return true;
+
+  const map: Record<string, string> = {};
+  for (const k in payload) if (k !== "pp_SecureHash" && k.startsWith("pp_")) map[k] = String(payload[k]);
+  const canonical = Object.keys(map).sort().map((k) => `${k}=${map[k]}`).join("&");
+  const alt = hmacSha256Hex(salt, canonical);
+  return alt === provided;
 }
 
 export const walletRoutes = {
