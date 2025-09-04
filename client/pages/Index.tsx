@@ -98,7 +98,7 @@ export default function Index() {
         {/* Feature grid to lengthen landing page */}
         <section id="features" className="mx-auto max-w-6xl pb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur hover-lift">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                 <Clock className="w-8 h-8 text-emerald-600" />
               </div>
@@ -108,7 +108,7 @@ export default function Index() {
                 real-time sync across devices.
               </p>
             </div>
-            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur hover-lift">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                 <Globe className="w-8 h-8 text-emerald-600" />
               </div>
@@ -118,7 +118,7 @@ export default function Index() {
                 activation.
               </p>
             </div>
-            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
+            <div className="rounded-xl border p-6 bg-white/60 backdrop-blur hover-lift">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                 <Shield className="w-8 h-8 text-emerald-600" />
               </div>
@@ -225,7 +225,7 @@ export default function Index() {
           </Link>
           .
         </div>
-        <div className="mt-2">© {new Date().getFullYear()} Connectlify</div>
+        <div className="mt-2">�� {new Date().getFullYear()} Connectlify</div>
       </footer>
     </div>
   );
