@@ -1,9 +1,80 @@
 import type { RequestHandler } from "express";
 import { connectDB } from "./db";
 import { NumberModel, Transaction, User } from "./models";
+import crypto from "crypto";
+import mongoose from "mongoose";
 
 const PLAN_PRICES: Record<string, number> = { starter: 9, professional: 19, enterprise: 49 };
 const NUMBER_PRICE = 2.5;
+
+function nowTimestamp() {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  const MM = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const mm = pad(d.getMinutes());
+  const ss = pad(d.getSeconds());
+  return `${yyyy}${MM}${dd}${hh}${mm}${ss}`;
+}
+
+function hmacSha256Hex(key: string, data: string) {
+  return crypto.createHmac("sha256", key).update(data, "utf8").digest("hex").toUpperCase();
+}
+
+function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
+  const endpoint = process.env.JAZZCASH_ENDPOINT || "https://payments.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform";
+  const merchantId = process.env.JAZZCASH_MERCHANT_ID || "";
+  const password = process.env.JAZZCASH_PASSWORD || "";
+  const salt = process.env.JAZZCASH_INTEGRITY_SALT || "";
+  const returnURL = process.env.JAZZCASH_RETURN_URL || "";
+  const ipnURL = process.env.JAZZCASH_IPN_URL || "";
+
+  if (!merchantId || !password || !salt || !returnURL) throw new Error("JazzCash env missing");
+
+  const txnRefNo = `T${Date.now()}${Math.floor(Math.random() * 10000)}`;
+  const billRef = String(opts.checkoutId);
+  const amountPaisa = Math.round(opts.amount * 100);
+
+  const params: Record<string, string> = {
+    pp_Version: "1.1",
+    pp_TxnType: "MPAY",
+    pp_Language: "EN",
+    pp_MerchantID: merchantId,
+    pp_Password: password,
+    pp_TxnRefNo: txnRefNo,
+    pp_Amount: String(amountPaisa),
+    pp_TxnCurrency: "PKR",
+    pp_TxnDateTime: nowTimestamp(),
+    pp_BillReference: billRef,
+    pp_Description: "Wallet Top-up",
+    pp_ReturnURL: returnURL,
+  };
+  if (ipnURL) params["pp_SecureHashType"] = "SHA256";
+
+  const sortedKeys = Object.keys(params).sort();
+  const canonical = sortedKeys.map((k) => `${k}=${params[k]}`).join("&");
+  const pp_SecureHash = hmacSha256Hex(salt, canonical);
+
+  return { endpoint, params: { ...params, pp_SecureHash } };
+}
+
+function verifyJazzCashHash(payload: Record<string, any>) {
+  const salt = process.env.JAZZCASH_INTEGRITY_SALT || "";
+  if (!salt) return false;
+  const data: Record<string, string> = {};
+  for (const k in payload) {
+    if (k === "pp_SecureHash") continue;
+    if (k.startsWith("pp_")) data[k] = String(payload[k]);
+  }
+  const canonical = Object.keys(data)
+    .sort()
+    .map((k) => `${k}=${data[k]}`)
+    .join("&");
+  const expected = hmacSha256Hex(salt, canonical);
+  return expected === String(payload["pp_SecureHash"]).toUpperCase();
+}
 
 export const walletRoutes = {
   startJazzCash: (async (req, res) => {
@@ -15,13 +86,56 @@ export const walletRoutes = {
       if (!(amt > 0)) return res.status(400).json({ error: "invalid amount" });
       const { Checkout } = await import("./models");
       const checkout = await Checkout.create({ userId, amount: amt, method: "jazzcash", status: "pending", meta: {} });
-      const configured = !!process.env.JAZZCASH_MERCHANT_ID;
+      const configured = !!process.env.JAZZCASH_MERCHANT_ID && !!process.env.JAZZCASH_PASSWORD && !!process.env.JAZZCASH_INTEGRITY_SALT && !!process.env.JAZZCASH_RETURN_URL;
       if (!configured) return res.status(501).json({ error: "JazzCash not configured", checkoutId: checkout._id });
-      res.json({ checkoutId: checkout._id });
+
+      const { endpoint, params } = buildJazzCashParams({ amount: amt, checkoutId: String(checkout._id) });
+      checkout.meta = { ...(checkout.meta || {}), txnRefNo: params.pp_TxnRefNo, billRef: params.pp_BillReference, amountPaisa: params.pp_Amount };
+      await checkout.save();
+
+      res.json({ checkoutId: checkout._id, endpoint, params });
     } catch (e: any) {
       res.status(500).json({ error: String(e?.message || e) });
     }
   }) as RequestHandler,
+
+  jazzcashIPN: (async (req, res) => {
+    try {
+      await connectDB();
+      const body = (req as any).body || {};
+      if (!verifyJazzCashHash(body)) return res.status(400).send("INVALID_HASH");
+
+      const { Checkout } = await import("./models");
+      const billRef = String(body.pp_BillReference || "");
+      if (!billRef) return res.status(400).send("MISSING_BILL_REF");
+
+      const checkout = await Checkout.findById(new mongoose.Types.ObjectId(billRef));
+      if (!checkout) return res.status(404).send("CHECKOUT_NOT_FOUND");
+
+      const responseCode = String(body.pp_ResponseCode || "");
+      const success = responseCode === "000";
+
+      checkout.meta = { ...(checkout.meta || {}), ipn: body };
+      if (success && checkout.status !== "succeeded") {
+        checkout.status = "succeeded";
+        await checkout.save();
+        const amount = Number(checkout.amount);
+        await User.updateOne({ _id: checkout.userId }, { $inc: { walletBalance: amount } });
+        await Transaction.create({ userId: checkout.userId, type: "deposit", amount, meta: { method: "jazzcash", txnRefNo: body.pp_TxnRefNo, billRef: body.pp_BillReference } });
+        return res.status(200).send("OK");
+      } else if (!success && checkout.status !== "failed") {
+        checkout.status = "failed";
+        await checkout.save();
+        return res.status(200).send("FAILED");
+      }
+
+      await checkout.save();
+      return res.status(200).send("OK");
+    } catch (e: any) {
+      res.status(500).send("ERROR");
+    }
+  }) as RequestHandler,
+
   startEasyPaisa: (async (req, res) => {
     try {
       await connectDB();
@@ -38,6 +152,7 @@ export const walletRoutes = {
       res.status(500).json({ error: String(e?.message || e) });
     }
   }) as RequestHandler,
+
   transactions: (async (req, res) => {
     try {
       await connectDB();

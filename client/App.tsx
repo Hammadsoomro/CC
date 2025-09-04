@@ -20,7 +20,6 @@ import Pricing from "./pages/Pricing";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Settings from "./pages/Settings";
-import Deposit from "./pages/Deposit";
 import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
@@ -46,7 +45,6 @@ const App = () => (
             <Route path="sub-accounts" element={<SubAccounts />} />
             <Route path="pricing" element={<Pricing />} />
             <Route path="settings" element={<Settings />} />
-            <Route path="deposit" element={<Deposit />} />
             <Route path="admin" element={<Admin />} />
           </Route>
 

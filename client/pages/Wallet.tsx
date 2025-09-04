@@ -33,9 +33,20 @@ export default function Wallet() {
   const startJazz = async () => {
     const token = localStorage.getItem("jwt");
     const res = await fetch("/api/wallet/jazzcash/start", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) { toast.error(data.error || "Unable to start JazzCash"); return; }
-    toast.success("Request created. Follow JazzCash flow.");
+    const data = await res.json().catch(() => ({} as any));
+    if (!res.ok || !data.endpoint || !data.params) { toast.error(data.error || "Unable to start JazzCash"); return; }
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = data.endpoint;
+    Object.entries(data.params).forEach(([k, v]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = String(v ?? "");
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
   };
   const startEasy = async () => {
     const token = localStorage.getItem("jwt");
@@ -102,8 +113,7 @@ export default function Wallet() {
             <Label htmlFor="amount">Amount</Label>
             <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
-          <Button onClick={() => window.location.href = "/deposit"} variant="default">Debit/Credit Card</Button>
-          <Button onClick={startJazz} variant="outline">JazzCash</Button>
+          <Button onClick={startJazz} variant="default">JazzCash</Button>
           <Button onClick={startEasy} variant="secondary">EasyPaisa</Button>
         </CardContent>
       </Card>
@@ -132,7 +142,7 @@ export default function Wallet() {
                       <td className="py-2 pr-4">{new Date(t.createdAt).toLocaleString()}</td>
                       <td className="py-2 pr-4 capitalize">{t.type}</td>
                       <td className="py-2 pr-4">${Number(t.amount).toFixed(2)}</td>
-                      <td className="py-2 pr-4 truncate">{t?.meta?.kind === 'number' ? `Number ${t.meta.phoneNumber}` : t?.meta?.kind === 'plan' ? `Plan ${t.meta.plan}` : t?.meta?.stripePaymentIntentId ? `Stripe ${t.meta.stripePaymentIntentId}` : JSON.stringify(t.meta || {})}</td>
+                      <td className="py-2 pr-4 truncate">{t?.meta?.kind === 'number' ? `Number ${t.meta.phoneNumber}` : t?.meta?.kind === 'plan' ? `Plan ${t.meta.plan}` : t?.meta?.method === 'jazzcash' ? `JazzCash ${t?.meta?.txnRefNo ?? ''}` : JSON.stringify(t.meta || {})}</td>
                     </tr>
                   ))}
                 </tbody>
