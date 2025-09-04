@@ -1,4 +1,5 @@
 import type { RequestHandler } from "express";
+import type { RequestHandler } from "express";
 import { connectDB } from "./db";
 import { NumberModel, User, Message } from "./models";
 
@@ -34,6 +35,17 @@ const toE164 = (n: string) => {
   return "+" + digits;
 };
 
+const streams = new Map<string, Set<any>>();
+
+function sendEvent(userId: string, event: string, data: any) {
+  const set = streams.get(userId);
+  if (!set) return;
+  const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const res of Array.from(set)) {
+    try { res.write(payload); } catch { try { set.delete(res); } catch {} }
+  }
+}
+
 export const messageRoutes = {
   send: (async (req, res) => {
     try {
@@ -67,7 +79,7 @@ export const messageRoutes = {
       const form = new URLSearchParams({ To: toE, From: fromE164, Body: String(body) });
       const resp = await swLaml(`/Messages.json`, { method: "POST", body: form as any });
 
-      await Message.create({
+      const doc = await Message.create({
         numberId: numberDoc._id,
         ownerUserId: numberDoc.ownerUserId,
         assignedToUserId: numberDoc.assignedToUserId,
@@ -78,6 +90,9 @@ export const messageRoutes = {
         providerSid: resp?.sid,
         status: "sent",
       });
+
+      const targets = [numberDoc.ownerUserId, numberDoc.assignedToUserId].filter(Boolean).map(String);
+      for (const uid of targets) sendEvent(uid, "message", { id: doc._id, from: fromE164, to: toE, body: String(body), direction: "outbound", createdAt: new Date().toISOString() });
 
       res.json({ ok: true, sid: resp.sid });
     } catch (e: any) {
@@ -126,7 +141,7 @@ export const messageRoutes = {
         targetNumber = candidates.find((n: any) => toE164(String(n.phoneNumber)) === to) || null;
       }
 
-      await Message.create({
+      const doc = await Message.create({
         numberId: targetNumber?._id,
         ownerUserId: targetNumber?.ownerUserId,
         assignedToUserId: targetNumber?.assignedToUserId,
@@ -138,9 +153,37 @@ export const messageRoutes = {
         status: "received",
       });
 
+      const targets = [targetNumber?.ownerUserId, targetNumber?.assignedToUserId].filter(Boolean).map(String);
+      for (const uid of targets) sendEvent(uid, "message", { id: doc._id, from, to, body, direction: "inbound", createdAt: new Date().toISOString() });
+
       res.status(200).send("OK");
     } catch (_e) {
       res.status(200).send("OK");
+    }
+  }) as RequestHandler,
+
+  stream: (async (req, res) => {
+    try {
+      await connectDB();
+      const userId = (req as any).userId as string;
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      res.write(`event: hello\ndata: {"ok":true}\n\n`);
+      const set = streams.get(userId) || new Set<any>();
+      set.add(res);
+      streams.set(userId, set);
+      const heartbeat = setInterval(() => {
+        try { res.write(`event: ping\ndata: {}\n\n`); } catch {}
+      }, 30000);
+      req.on("close", () => {
+        clearInterval(heartbeat);
+        try { set.delete(res); } catch {}
+      });
+    } catch {
+      res.status(401).end();
     }
   }) as RequestHandler,
 };
