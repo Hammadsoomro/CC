@@ -40,6 +40,7 @@ export default function Admin() {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="numbers">Numbers</TabsTrigger>
           <TabsTrigger value="send">Send SMS</TabsTrigger>
+          <TabsTrigger value="requests">Password Requests</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="animate-[fadeInUp_0.4s_ease-out]">
           <UsersTab />
@@ -49,6 +50,9 @@ export default function Admin() {
         </TabsContent>
         <TabsContent value="send" className="animate-[fadeInUp_0.4s_ease-out]">
           <SendTab />
+        </TabsContent>
+        <TabsContent value="requests" className="animate-[fadeInUp_0.4s_ease-out]">
+          <RequestsTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -150,6 +154,10 @@ function UsersTab() {
                 <div className="text-sm text-muted-foreground">Created: {new Date(selected.user.createdAt).toLocaleString()}</div>
               </div>
               <div>
+                <div className="font-medium mb-1">Change Password</div>
+                <ChangePassword userIdGetter={() => selected.user.id} />
+              </div>
+              <div>
                 <div className="font-medium mb-1">Adjust Wallet</div>
                 <div className="grid grid-cols-1 gap-2">
                   <div>
@@ -189,6 +197,26 @@ function UsersTab() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ChangePassword({ userIdGetter }: { userIdGetter: () => string }) {
+  const [pwd, setPwd] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  return (
+    <div className="grid grid-cols-1 gap-2">
+      <div>
+        <Label>New password</Label>
+        <Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} />
+      </div>
+      <div>
+        <Button onClick={async () => {
+          try { setStatus(null); await api(`/api/admin/users/${userIdGetter()}/password`, { method: "POST", body: JSON.stringify({ newPassword: pwd }) }); setPwd(""); setStatus("Updated"); }
+          catch (e: any) { setStatus(String(e?.message || e)); }
+        }}>Update</Button>
+        {status && <span className="ml-2 text-sm text-muted-foreground">{status}</span>}
+      </div>
     </div>
   );
 }
@@ -290,6 +318,70 @@ function NumbersTab() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function RequestsTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [newPwd, setNewPwd] = useState<Record<string, string>>({});
+
+  const load = async () => {
+    setError(null);
+    try { const d = await api<{ requests: any[] }>("/api/admin/password-requests"); setItems(d.requests); }
+    catch (e: any) { setError(String(e?.message || e)); }
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const approve = async (id: string) => {
+    try {
+      await api(`/api/admin/password-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ newPassword: newPwd[id] || "" }) });
+      await load();
+    } catch (e: any) { setError(String(e?.message || e)); }
+  };
+
+  const reject = async (id: string) => {
+    try { await api(`/api/admin/password-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason: "rejected" }) }); await load(); }
+    catch (e: any) { setError(String(e?.message || e)); }
+  };
+
+  return (
+    <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+      <CardHeader><CardTitle>Password Change Requests</CardTitle></CardHeader>
+      <CardContent>
+        {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
+        <Button size="sm" variant="outline" className="mb-2" onClick={load}>Refresh</Button>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Email</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Requested</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((it) => (
+              <TableRow key={it._id}>
+                <TableCell>{it.email}</TableCell>
+                <TableCell>{it.phone}</TableCell>
+                <TableCell>{[it.firstName, it.lastName].filter(Boolean).join(" ") || "-"}</TableCell>
+                <TableCell>{new Date(it.createdAt).toLocaleString()}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Input type="password" placeholder="new password" value={newPwd[it._id] || ""} onChange={(e) => setNewPwd({ ...newPwd, [it._id]: e.target.value })} />
+                    <Button size="sm" onClick={() => approve(it._id)}>Approve</Button>
+                    <Button size="sm" variant="outline" onClick={() => reject(it._id)}>Reject</Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 
