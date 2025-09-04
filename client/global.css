@@ -7,13 +7,25 @@
 
 @layer utilities {
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
   @keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
@@ -117,7 +129,22 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image: radial-gradient(60% 60% at 10% 10%, hsl(var(--accent)) 0%, transparent 60%), radial-gradient(50% 50% at 90% 20%, hsl(var(--primary)/0.15) 0%, transparent 60%), linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 60%);
+    background-image:
+      radial-gradient(
+        60% 60% at 10% 10%,
+        hsl(var(--accent)) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        50% 50% at 90% 20%,
+        hsl(var(--primary) / 0.15) 0%,
+        transparent 60%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(var(--background)) 0%,
+        hsl(var(--background)) 60%
+      );
     background-attachment: fixed;
   }
 
@@ -128,7 +155,12 @@
     animation: floaty 10s ease-in-out infinite;
   }
   @keyframes floaty {
-    0%,100% { transform: translateY(0px) }
-    50% { transform: translateY(-12px) }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-12px);
+    }
   }
 }

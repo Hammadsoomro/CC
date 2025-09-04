@@ -19,7 +19,11 @@ export function verifyToken(token: string) {
 
 export const requireAuth: RequestHandler = async (req, res, next) => {
   try {
-    const token = req.cookies?.[COOKIE_NAME] || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : undefined);
+    const token =
+      req.cookies?.[COOKIE_NAME] ||
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.split(" ")[1]
+        : undefined);
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = verifyToken(token);
     (req as any).userId = decoded.userId;
@@ -33,37 +37,82 @@ export const authRoutes = {
   signup: (async (req, res) => {
     await connectDB();
     const { email, password, firstName, lastName, phone } = req.body || {};
-    const e = String(email || "").trim().toLowerCase();
-    if (!e || !password) return res.status(400).json({ error: "email and password required" });
+    const e = String(email || "")
+      .trim()
+      .toLowerCase();
+    if (!e || !password)
+      return res.status(400).json({ error: "email and password required" });
     const exists = await User.findOne({ email: e });
-    if (exists) return res.status(400).json({ error: "email already registered" });
+    if (exists)
+      return res.status(400).json({ error: "email already registered" });
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ email: e, passwordHash, firstName, lastName, phone, role: "main" });
+    const user = await User.create({
+      email: e,
+      passwordHash,
+      firstName,
+      lastName,
+      phone,
+      role: "main",
+    });
     const token = signToken({ userId: user._id.toString() });
     res.cookie(COOKIE_NAME, token, cookieOpts);
-    res.json({ token, user: { id: user._id, email: user.email, firstName, lastName, role: user.role } });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName,
+        lastName,
+        role: user.role,
+      },
+    });
   }) as RequestHandler,
   login: (async (req, res) => {
     await connectDB();
     const { email, password } = req.body || {};
-    const e = String(email || "").trim().toLowerCase();
+    const e = String(email || "")
+      .trim()
+      .toLowerCase();
     const user = await User.findOne({ email: e });
     if (!user) return res.status(400).json({ error: "invalid credentials" });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(400).json({ error: "invalid credentials" });
     const token = signToken({ userId: user._id.toString() });
     res.cookie(COOKIE_NAME, token, cookieOpts);
-    res.json({ token, user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    });
   }) as RequestHandler,
   me: (async (req, res) => {
     await connectDB();
     try {
-      const token = req.cookies?.[COOKIE_NAME] || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : undefined);
+      const token =
+        req.cookies?.[COOKIE_NAME] ||
+        (req.headers.authorization?.startsWith("Bearer ")
+          ? req.headers.authorization.split(" ")[1]
+          : undefined);
       if (!token) return res.status(401).json({ error: "Unauthorized" });
       const decoded = verifyToken(token);
       const user = await User.findById(decoded.userId).lean();
       if (!user) return res.status(401).json({ error: "Unauthorized" });
-      res.json({ user: { id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, walletBalance: user.walletBalance, plan: user.plan } });
+      res.json({
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          walletBalance: user.walletBalance,
+          plan: user.plan,
+        },
+      });
     } catch {
       res.status(401).json({ error: "Unauthorized" });
     }

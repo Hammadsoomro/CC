@@ -1,15 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-
 
 export default function Admin() {
   const nav = useNavigate();
@@ -34,7 +47,9 @@ export default function Admin() {
         <div className="absolute -top-20 -left-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl animate-[float_8s_ease-in-out_infinite]" />
         <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-accent/20 blur-3xl animate-[float_10s_ease-in-out_infinite]" />
       </div>
-      <h1 className="text-2xl font-bold mb-4 animate-[fadeInUp_0.5s_ease-out]">Admin Panel</h1>
+      <h1 className="text-2xl font-bold mb-4 animate-[fadeInUp_0.5s_ease-out]">
+        Admin Panel
+      </h1>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="animate-[fadeInUp_0.6s_ease-out]">
           <TabsTrigger value="users">Users</TabsTrigger>
@@ -45,13 +60,19 @@ export default function Admin() {
         <TabsContent value="users" className="animate-[fadeInUp_0.4s_ease-out]">
           <UsersTab />
         </TabsContent>
-        <TabsContent value="numbers" className="animate-[fadeInUp_0.4s_ease-out]">
+        <TabsContent
+          value="numbers"
+          className="animate-[fadeInUp_0.4s_ease-out]"
+        >
           <NumbersTab />
         </TabsContent>
         <TabsContent value="send" className="animate-[fadeInUp_0.4s_ease-out]">
           <SendTab />
         </TabsContent>
-        <TabsContent value="requests" className="animate-[fadeInUp_0.4s_ease-out]">
+        <TabsContent
+          value="requests"
+          className="animate-[fadeInUp_0.4s_ease-out]"
+        >
           <RequestsTab />
         </TabsContent>
       </Tabs>
@@ -68,47 +89,82 @@ function UsersTab() {
   const [reason, setReason] = useState<string>("");
 
   const load = async () => {
-    setLoading(true); setError(null);
+    setLoading(true);
+    setError(null);
     try {
       const d = await api<{ users: any[] }>("/api/admin/users");
       setUsers(d.users);
-    } catch (e: any) { setError(String(e?.message || e)); }
-    finally { setLoading(false); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const onRowClick = async (id: string) => {
     try {
-      const d = await api<{ user: any; owned: any[]; assigned: any[]; transactions: any[] }>(`/api/admin/users/${id}`);
+      const d = await api<{
+        user: any;
+        owned: any[];
+        assigned: any[];
+        transactions: any[];
+      }>(`/api/admin/users/${id}`);
       setSelected(d);
-    } catch (e: any) { setError(String(e?.message || e)); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   const adjust = async () => {
     try {
       const amt = Number(delta);
-      if (!Number.isFinite(amt) || amt === 0) throw new Error("Enter a non-zero amount");
-      await api(`/api/admin/users/${selected.user.id}/wallet`, { method: "POST", body: JSON.stringify({ delta: amt, reason }) });
-      setDelta(""); setReason("");
+      if (!Number.isFinite(amt) || amt === 0)
+        throw new Error("Enter a non-zero amount");
+      await api(`/api/admin/users/${selected.user.id}/wallet`, {
+        method: "POST",
+        body: JSON.stringify({ delta: amt, reason }),
+      });
+      setDelta("");
+      setReason("");
       await onRowClick(selected.user.id);
       await load();
-    } catch (e: any) { setError(String(e?.message || e)); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   const delUser = async (id: string) => {
     if (!confirm("Delete this user?")) return;
-    try { await api(`/api/admin/users/${id}`, { method: "DELETE" }); setSelected(null); await load(); }
-    catch (e: any) { setError(String(e?.message || e)); }
+    try {
+      await api(`/api/admin/users/${id}`, { method: "DELETE" });
+      setSelected(null);
+      await load();
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
       <Card className="xl:col-span-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-        <CardHeader><CardTitle>All Users</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Users</CardTitle>
+        </CardHeader>
         <CardContent>
           {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-          <Button onClick={load} disabled={loading} variant="outline" size="sm" className="mb-2">Refresh</Button>
+          <Button
+            onClick={load}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+            className="mb-2"
+          >
+            Refresh
+          </Button>
           <Table>
             <TableCaption>Users</TableCaption>
             <TableHeader>
@@ -124,15 +180,30 @@ function UsersTab() {
             </TableHeader>
             <TableBody>
               {users.map((u) => (
-                <TableRow key={u.id} className="cursor-pointer" onClick={() => onRowClick(u.id)}>
+                <TableRow
+                  key={u.id}
+                  className="cursor-pointer"
+                  onClick={() => onRowClick(u.id)}
+                >
                   <TableCell>{u.email}</TableCell>
                   <TableCell>{u.role}</TableCell>
                   <TableCell>${(u.walletBalance ?? 0).toFixed(2)}</TableCell>
                   <TableCell>{u.plan}</TableCell>
                   <TableCell>{u.numbersOwned}</TableCell>
-                  <TableCell>{new Date(u.createdAt).toLocaleString()}</TableCell>
                   <TableCell>
-                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); delUser(u.id); }}>Delete</Button>
+                    {new Date(u.createdAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        delUser(u.id);
+                      }}
+                    >
+                      Delete
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -142,16 +213,26 @@ function UsersTab() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Details</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Details</CardTitle>
+        </CardHeader>
         <CardContent>
           {selected ? (
             <div className="space-y-4">
               <div>
                 <div className="font-medium">{selected.user.email}</div>
-                <div className="text-sm text-muted-foreground">Role: {selected.user.role}</div>
-                <div className="text-sm text-muted-foreground">Wallet: ${(selected.user.walletBalance ?? 0).toFixed(2)}</div>
-                <div className="text-sm text-muted-foreground">Plan: {selected.user.plan}</div>
-                <div className="text-sm text-muted-foreground">Created: {new Date(selected.user.createdAt).toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">
+                  Role: {selected.user.role}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Wallet: ${(selected.user.walletBalance ?? 0).toFixed(2)}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Plan: {selected.user.plan}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Created: {new Date(selected.user.createdAt).toLocaleString()}
+                </div>
               </div>
               <div>
                 <div className="font-medium mb-1">Change Password</div>
@@ -162,11 +243,21 @@ function UsersTab() {
                 <div className="grid grid-cols-1 gap-2">
                   <div>
                     <Label htmlFor="delta">Amount (+/-)</Label>
-                    <Input id="delta" value={delta} onChange={(e) => setDelta(e.target.value)} placeholder="e.g. 100 or -50" />
+                    <Input
+                      id="delta"
+                      value={delta}
+                      onChange={(e) => setDelta(e.target.value)}
+                      placeholder="e.g. 100 or -50"
+                    />
                   </div>
                   <div>
                     <Label htmlFor="reason">Reason</Label>
-                    <Input id="reason" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="optional" />
+                    <Input
+                      id="reason"
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="optional"
+                    />
                   </div>
                   <Button onClick={adjust}>Apply</Button>
                 </div>
@@ -174,26 +265,35 @@ function UsersTab() {
               <div>
                 <div className="font-medium">Owned Numbers</div>
                 <ul className="text-sm list-disc ml-4">
-                  {selected.owned.map((n: any) => (<li key={n._id}>{n.phoneNumber}</li>))}
+                  {selected.owned.map((n: any) => (
+                    <li key={n._id}>{n.phoneNumber}</li>
+                  ))}
                 </ul>
               </div>
               <div>
                 <div className="font-medium">Assigned Numbers</div>
                 <ul className="text-sm list-disc ml-4">
-                  {selected.assigned.map((n: any) => (<li key={n._id}>{n.phoneNumber}</li>))}
+                  {selected.assigned.map((n: any) => (
+                    <li key={n._id}>{n.phoneNumber}</li>
+                  ))}
                 </ul>
               </div>
               <div>
                 <div className="font-medium">Recent Transactions</div>
                 <ul className="text-sm list-disc ml-4 max-h-40 overflow-auto">
                   {selected.transactions.map((t: any) => (
-                    <li key={t._id}>{new Date(t.createdAt).toLocaleString()} - {t.type} - ${t.amount.toFixed(2)}</li>
+                    <li key={t._id}>
+                      {new Date(t.createdAt).toLocaleString()} - {t.type} - $
+                      {t.amount.toFixed(2)}
+                    </li>
                   ))}
                 </ul>
               </div>
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground">Select a user to view details</div>
+            <div className="text-sm text-muted-foreground">
+              Select a user to view details
+            </div>
           )}
         </CardContent>
       </Card>
@@ -208,14 +308,33 @@ function ChangePassword({ userIdGetter }: { userIdGetter: () => string }) {
     <div className="grid grid-cols-1 gap-2">
       <div>
         <Label>New password</Label>
-        <Input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} />
+        <Input
+          type="password"
+          value={pwd}
+          onChange={(e) => setPwd(e.target.value)}
+        />
       </div>
       <div>
-        <Button onClick={async () => {
-          try { setStatus(null); await api(`/api/admin/users/${userIdGetter()}/password`, { method: "POST", body: JSON.stringify({ newPassword: pwd }) }); setPwd(""); setStatus("Updated"); }
-          catch (e: any) { setStatus(String(e?.message || e)); }
-        }}>Update</Button>
-        {status && <span className="ml-2 text-sm text-muted-foreground">{status}</span>}
+        <Button
+          onClick={async () => {
+            try {
+              setStatus(null);
+              await api(`/api/admin/users/${userIdGetter()}/password`, {
+                method: "POST",
+                body: JSON.stringify({ newPassword: pwd }),
+              });
+              setPwd("");
+              setStatus("Updated");
+            } catch (e: any) {
+              setStatus(String(e?.message || e));
+            }
+          }}
+        >
+          Update
+        </Button>
+        {status && (
+          <span className="ml-2 text-sm text-muted-foreground">{status}</span>
+        )}
       </div>
     </div>
   );
@@ -235,38 +354,71 @@ function NumbersTab() {
       setNumbers(dn.numbers);
       const du = await api<{ users: any[] }>("/api/admin/users");
       setUsers(du.users);
-    } catch (e: any) { setError(String(e?.message || e)); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const doAssign = async () => {
     if (!selectedNumber || !assignUser) return;
     try {
-      await api("/api/admin/numbers/assign", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber, assignedToUserId: assignUser }) });
+      await api("/api/admin/numbers/assign", {
+        method: "POST",
+        body: JSON.stringify({
+          phoneNumber: selectedNumber,
+          assignedToUserId: assignUser,
+        }),
+      });
       await load();
-    } catch (e: any) { setError(String(e?.message || e)); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   const doUnassign = async () => {
     if (!selectedNumber) return;
-    try { await api("/api/admin/numbers/unassign", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber }) }); await load(); }
-    catch (e: any) { setError(String(e?.message || e)); }
+    try {
+      await api("/api/admin/numbers/unassign", {
+        method: "POST",
+        body: JSON.stringify({ phoneNumber: selectedNumber }),
+      });
+      await load();
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   const doTransfer = async () => {
     if (!selectedNumber || !assignUser) return;
-    try { await api("/api/admin/numbers/transfer-ownership", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber, newOwnerUserId: assignUser }) }); await load(); }
-    catch (e: any) { setError(String(e?.message || e)); }
+    try {
+      await api("/api/admin/numbers/transfer-ownership", {
+        method: "POST",
+        body: JSON.stringify({
+          phoneNumber: selectedNumber,
+          newOwnerUserId: assignUser,
+        }),
+      });
+      await load();
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
       <Card className="xl:col-span-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-        <CardHeader><CardTitle>All Numbers</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>All Numbers</CardTitle>
+        </CardHeader>
         <CardContent>
           {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-          <Button variant="outline" size="sm" className="mb-2" onClick={load}>Refresh</Button>
+          <Button variant="outline" size="sm" className="mb-2" onClick={load}>
+            Refresh
+          </Button>
           <Table>
             <TableHeader>
               <TableRow>
@@ -279,12 +431,18 @@ function NumbersTab() {
             </TableHeader>
             <TableBody>
               {numbers.map((n) => (
-                <TableRow key={n.id} className="cursor-pointer" onClick={() => setSelectedNumber(n.phoneNumber)}>
+                <TableRow
+                  key={n.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedNumber(n.phoneNumber)}
+                >
                   <TableCell>{n.phoneNumber}</TableCell>
                   <TableCell>{n.ownerEmail || n.ownerUserId}</TableCell>
                   <TableCell>{n.assignedEmail || "-"}</TableCell>
                   <TableCell>{n.country || "-"}</TableCell>
-                  <TableCell>{new Date(n.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>
+                    {new Date(n.createdAt).toLocaleString()}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -293,26 +451,42 @@ function NumbersTab() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Assign / Transfer</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Assign / Transfer</CardTitle>
+        </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <div>
               <Label>Selected Number</Label>
-              <Input value={selectedNumber} onChange={(e) => setSelectedNumber(e.target.value)} placeholder="+15551234567" />
+              <Input
+                value={selectedNumber}
+                onChange={(e) => setSelectedNumber(e.target.value)}
+                placeholder="+15551234567"
+              />
             </div>
             <div>
               <Label>Select User</Label>
               <Select value={assignUser} onValueChange={setAssignUser}>
-                <SelectTrigger><SelectValue placeholder="Choose user" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose user" />
+                </SelectTrigger>
                 <SelectContent>
-                  {users.map((u) => (<SelectItem key={u.id} value={u.id}>{u.email}</SelectItem>))}
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.email}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex gap-2">
               <Button onClick={doAssign}>Assign</Button>
-              <Button onClick={doUnassign} variant="outline">Unassign</Button>
-              <Button onClick={doTransfer} variant="secondary">Transfer Ownership</Button>
+              <Button onClick={doUnassign} variant="outline">
+                Unassign
+              </Button>
+              <Button onClick={doTransfer} variant="secondary">
+                Transfer Ownership
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -328,30 +502,52 @@ function RequestsTab() {
 
   const load = async () => {
     setError(null);
-    try { const d = await api<{ requests: any[] }>("/api/admin/password-requests"); setItems(d.requests); }
-    catch (e: any) { setError(String(e?.message || e)); }
+    try {
+      const d = await api<{ requests: any[] }>("/api/admin/password-requests");
+      setItems(d.requests);
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const approve = async (id: string) => {
     try {
-      await api(`/api/admin/password-requests/${id}/approve`, { method: "POST", body: JSON.stringify({ newPassword: newPwd[id] || "" }) });
+      await api(`/api/admin/password-requests/${id}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ newPassword: newPwd[id] || "" }),
+      });
       await load();
-    } catch (e: any) { setError(String(e?.message || e)); }
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   const reject = async (id: string) => {
-    try { await api(`/api/admin/password-requests/${id}/reject`, { method: "POST", body: JSON.stringify({ reason: "rejected" }) }); await load(); }
-    catch (e: any) { setError(String(e?.message || e)); }
+    try {
+      await api(`/api/admin/password-requests/${id}/reject`, {
+        method: "POST",
+        body: JSON.stringify({ reason: "rejected" }),
+      });
+      await load();
+    } catch (e: any) {
+      setError(String(e?.message || e));
+    }
   };
 
   return (
     <Card className="transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-      <CardHeader><CardTitle>Password Change Requests</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>Password Change Requests</CardTitle>
+      </CardHeader>
       <CardContent>
         {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-        <Button size="sm" variant="outline" className="mb-2" onClick={load}>Refresh</Button>
+        <Button size="sm" variant="outline" className="mb-2" onClick={load}>
+          Refresh
+        </Button>
         <Table>
           <TableHeader>
             <TableRow>
@@ -367,13 +563,30 @@ function RequestsTab() {
               <TableRow key={it._id}>
                 <TableCell>{it.email}</TableCell>
                 <TableCell>{it.phone}</TableCell>
-                <TableCell>{[it.firstName, it.lastName].filter(Boolean).join(" ") || "-"}</TableCell>
+                <TableCell>
+                  {[it.firstName, it.lastName].filter(Boolean).join(" ") || "-"}
+                </TableCell>
                 <TableCell>{new Date(it.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Input type="password" placeholder="new password" value={newPwd[it._id] || ""} onChange={(e) => setNewPwd({ ...newPwd, [it._id]: e.target.value })} />
-                    <Button size="sm" onClick={() => approve(it._id)}>Approve</Button>
-                    <Button size="sm" variant="outline" onClick={() => reject(it._id)}>Reject</Button>
+                    <Input
+                      type="password"
+                      placeholder="new password"
+                      value={newPwd[it._id] || ""}
+                      onChange={(e) =>
+                        setNewPwd({ ...newPwd, [it._id]: e.target.value })
+                      }
+                    />
+                    <Button size="sm" onClick={() => approve(it._id)}>
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => reject(it._id)}
+                    >
+                      Reject
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -394,31 +607,52 @@ function SendTab() {
   const send = async () => {
     setStatus(null);
     try {
-      await api("/api/admin/messages/send", { method: "POST", body: JSON.stringify({ from, to, body }) });
+      await api("/api/admin/messages/send", {
+        method: "POST",
+        body: JSON.stringify({ from, to, body }),
+      });
       setStatus("Sent");
-    } catch (e: any) { setStatus(String(e.message || e)); }
+    } catch (e: any) {
+      setStatus(String(e.message || e));
+    }
   };
 
   return (
     <Card>
-      <CardHeader><CardTitle>Send SMS from any number</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>Send SMS from any number</CardTitle>
+      </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <Label>From</Label>
-            <Input value={from} onChange={(e) => setFrom(e.target.value)} placeholder="+15551234567" />
+            <Input
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              placeholder="+15551234567"
+            />
           </div>
           <div>
             <Label>To</Label>
-            <Input value={to} onChange={(e) => setTo(e.target.value)} placeholder="+15557654321" />
+            <Input
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              placeholder="+15557654321"
+            />
           </div>
           <div className="md:col-span-3">
             <Label>Message</Label>
-            <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} />
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={4}
+            />
           </div>
           <div className="md:col-span-3 flex items-center gap-3">
             <Button onClick={send}>Send</Button>
-            {status && <div className="text-sm text-muted-foreground">{status}</div>}
+            {status && (
+              <div className="text-sm text-muted-foreground">{status}</div>
+            )}
           </div>
         </div>
       </CardContent>

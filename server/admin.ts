@@ -1,17 +1,28 @@
 import { RequestHandler } from "express";
 import bcrypt from "bcryptjs";
 import { connectDB } from "./db";
-import { NumberModel, Transaction, User, Message, PasswordRequest } from "./models";
+import {
+  NumberModel,
+  Transaction,
+  User,
+  Message,
+  PasswordRequest,
+} from "./models";
 import { verifyToken } from "./auth";
 
 export const requireAdmin: RequestHandler = async (req, res, next) => {
   try {
     await connectDB();
-    const token = req.cookies?.["connectlify_jwt"] || (req.headers.authorization?.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : undefined);
+    const token =
+      req.cookies?.["connectlify_jwt"] ||
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.split(" ")[1]
+        : undefined);
     if (!token) return res.status(401).json({ error: "Unauthorized" });
     const decoded = verifyToken(token);
     const me = await User.findById((decoded as any).userId).lean();
-    if (!me || me.role !== "admin") return res.status(403).json({ error: "Forbidden" });
+    if (!me || me.role !== "admin")
+      return res.status(403).json({ error: "Forbidden" });
     (req as any).userId = String(me._id);
     next();
   } catch (e) {
@@ -28,13 +39,24 @@ export async function ensureAdminUser() {
   const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   let admin = await User.findOne({ email }).lean();
   if (!admin) {
-    admin = await User.findOne({ email: { $regex: new RegExp(`^${escape(email)}$`, "i") } }).lean();
+    admin = await User.findOne({
+      email: { $regex: new RegExp(`^${escape(email)}$`, "i") },
+    }).lean();
   }
   const passwordHash = await bcrypt.hash(pwd, 10);
   if (!admin) {
-    await User.create({ email, passwordHash, role: "admin", firstName: "Admin", lastName: "" });
+    await User.create({
+      email,
+      passwordHash,
+      role: "admin",
+      firstName: "Admin",
+      lastName: "",
+    });
   } else {
-    await User.updateOne({ _id: admin._id }, { $set: { role: "admin", email, passwordHash } });
+    await User.updateOne(
+      { _id: admin._id },
+      { $set: { role: "admin", email, passwordHash } },
+    );
   }
 }
 
@@ -51,7 +73,10 @@ const toE164 = (n: string) => {
 export const adminRoutes = {
   users: (async (_req, res) => {
     await connectDB();
-    const users = await User.find({}).select("email role walletBalance plan createdAt").sort({ createdAt: -1 }).lean();
+    const users = await User.find({})
+      .select("email role walletBalance plan createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
     const ids = users.map((u: any) => u._id);
     const counts = await NumberModel.aggregate([
       { $match: { ownerUserId: { $in: ids } } },
@@ -59,15 +84,17 @@ export const adminRoutes = {
     ]);
     const byId: Record<string, number> = {};
     for (const c of counts) byId[String(c._id)] = c.cnt;
-    res.json({ users: users.map((u: any) => ({
-      id: u._id,
-      email: u.email,
-      role: u.role,
-      walletBalance: u.walletBalance ?? 0,
-      plan: u.plan || "free",
-      createdAt: u.createdAt,
-      numbersOwned: byId[String(u._id)] || 0,
-    })) });
+    res.json({
+      users: users.map((u: any) => ({
+        id: u._id,
+        email: u.email,
+        role: u.role,
+        walletBalance: u.walletBalance ?? 0,
+        plan: u.plan || "free",
+        createdAt: u.createdAt,
+        numbersOwned: byId[String(u._id)] || 0,
+      })),
+    });
   }) as RequestHandler,
 
   userDetail: (async (req, res) => {
@@ -77,8 +104,23 @@ export const adminRoutes = {
     if (!user) return res.status(404).json({ error: "User not found" });
     const owned = await NumberModel.find({ ownerUserId: id }).lean();
     const assigned = await NumberModel.find({ assignedToUserId: id }).lean();
-    const tx = await Transaction.find({ userId: id }).sort({ createdAt: -1 }).limit(50).lean();
-    res.json({ user: { id: user._id, email: user.email, role: user.role, walletBalance: user.walletBalance ?? 0, plan: user.plan, createdAt: user.createdAt }, owned, assigned, transactions: tx });
+    const tx = await Transaction.find({ userId: id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        walletBalance: user.walletBalance ?? 0,
+        plan: user.plan,
+        createdAt: user.createdAt,
+      },
+      owned,
+      assigned,
+      transactions: tx,
+    });
   }) as RequestHandler,
 
   walletAdjust: (async (req, res) => {
@@ -86,39 +128,62 @@ export const adminRoutes = {
     const { id } = req.params as any;
     const { delta, reason } = req.body || {};
     const amt = Number(delta);
-    if (!Number.isFinite(amt) || amt === 0) return res.status(400).json({ error: "delta must be non-zero number" });
+    if (!Number.isFinite(amt) || amt === 0)
+      return res.status(400).json({ error: "delta must be non-zero number" });
     const u = await User.findById(id);
     if (!u) return res.status(404).json({ error: "User not found" });
     await User.updateOne({ _id: id }, { $inc: { walletBalance: amt } });
-    await Transaction.create({ userId: id, type: amt > 0 ? "deposit" : "transfer", amount: Math.abs(amt), meta: { reason: reason || "admin_adjust" } });
+    await Transaction.create({
+      userId: id,
+      type: amt > 0 ? "deposit" : "transfer",
+      amount: Math.abs(amt),
+      meta: { reason: reason || "admin_adjust" },
+    });
     res.json({ ok: true });
   }) as RequestHandler,
 
   numbers: (async (_req, res) => {
     await connectDB();
     const nums = await NumberModel.find({}).lean();
-    const ownerIds = Array.from(new Set(nums.map((n: any) => n.ownerUserId).filter((v: any) => !!v)));
-    const assignedIds = Array.from(new Set(nums.map((n: any) => n.assignedToUserId).filter((v: any) => !!v)));
+    const ownerIds = Array.from(
+      new Set(nums.map((n: any) => n.ownerUserId).filter((v: any) => !!v)),
+    );
+    const assignedIds = Array.from(
+      new Set(nums.map((n: any) => n.assignedToUserId).filter((v: any) => !!v)),
+    );
     const ids: any[] = Array.from(new Set([...ownerIds, ...assignedIds]));
-    const users = ids.length ? await User.find({ _id: { $in: ids } }).select("email").lean() : [];
+    const users = ids.length
+      ? await User.find({ _id: { $in: ids } })
+          .select("email")
+          .lean()
+      : [];
     const emailById: Record<string, string> = {};
     for (const u of users) emailById[String(u._id)] = u.email as any;
-    res.json({ numbers: nums.map((n: any) => ({
-      id: n._id,
-      phoneNumber: n.phoneNumber,
-      ownerUserId: n.ownerUserId || null,
-      ownerEmail: n.ownerUserId ? emailById[String(n.ownerUserId)] || null : null,
-      assignedToUserId: n.assignedToUserId || null,
-      assignedEmail: n.assignedToUserId ? emailById[String(n.assignedToUserId)] || null : null,
-      country: n.country || null,
-      createdAt: n.createdAt,
-    })) });
+    res.json({
+      numbers: nums.map((n: any) => ({
+        id: n._id,
+        phoneNumber: n.phoneNumber,
+        ownerUserId: n.ownerUserId || null,
+        ownerEmail: n.ownerUserId
+          ? emailById[String(n.ownerUserId)] || null
+          : null,
+        assignedToUserId: n.assignedToUserId || null,
+        assignedEmail: n.assignedToUserId
+          ? emailById[String(n.assignedToUserId)] || null
+          : null,
+        country: n.country || null,
+        createdAt: n.createdAt,
+      })),
+    });
   }) as RequestHandler,
 
   assignNumber: (async (req, res) => {
     await connectDB();
     const { phoneNumber, assignedToUserId } = req.body || {};
-    if (!phoneNumber || !assignedToUserId) return res.status(400).json({ error: "phoneNumber and assignedToUserId required" });
+    if (!phoneNumber || !assignedToUserId)
+      return res
+        .status(400)
+        .json({ error: "phoneNumber and assignedToUserId required" });
     const n = await NumberModel.findOne({ phoneNumber: toE164(phoneNumber) });
     if (!n) return res.status(404).json({ error: "Number not found" });
     const u = await User.findById(assignedToUserId).lean();
@@ -130,22 +195,35 @@ export const adminRoutes = {
   unassignNumber: (async (req, res) => {
     await connectDB();
     const { phoneNumber } = req.body || {};
-    if (!phoneNumber) return res.status(400).json({ error: "phoneNumber required" });
+    if (!phoneNumber)
+      return res.status(400).json({ error: "phoneNumber required" });
     const n = await NumberModel.findOne({ phoneNumber: toE164(phoneNumber) });
     if (!n) return res.status(404).json({ error: "Number not found" });
-    await NumberModel.updateOne({ _id: n._id }, { $unset: { assignedToUserId: 1 } });
+    await NumberModel.updateOne(
+      { _id: n._id },
+      { $unset: { assignedToUserId: 1 } },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 
   transferOwnership: (async (req, res) => {
     await connectDB();
     const { phoneNumber, newOwnerUserId } = req.body || {};
-    if (!phoneNumber || !newOwnerUserId) return res.status(400).json({ error: "phoneNumber and newOwnerUserId required" });
+    if (!phoneNumber || !newOwnerUserId)
+      return res
+        .status(400)
+        .json({ error: "phoneNumber and newOwnerUserId required" });
     const n = await NumberModel.findOne({ phoneNumber: toE164(phoneNumber) });
     if (!n) return res.status(404).json({ error: "Number not found" });
     const u = await User.findById(newOwnerUserId).lean();
     if (!u) return res.status(404).json({ error: "User not found" });
-    await NumberModel.updateOne({ _id: n._id }, { $set: { ownerUserId: newOwnerUserId }, $unset: { assignedToUserId: 1 } });
+    await NumberModel.updateOne(
+      { _id: n._id },
+      {
+        $set: { ownerUserId: newOwnerUserId },
+        $unset: { assignedToUserId: 1 },
+      },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 
@@ -153,24 +231,39 @@ export const adminRoutes = {
     try {
       await connectDB();
       const { to, body, from } = req.body || {};
-      if (!to || !body || !from) return res.status(400).json({ error: "from, to and body required" });
+      if (!to || !body || !from)
+        return res.status(400).json({ error: "from, to and body required" });
       const fromE = toE164(from);
       const toE = toE164(to);
-      const numberDoc = await NumberModel.findOne({ phoneNumber: fromE }).lean();
-      if (!numberDoc) return res.status(400).json({ error: "from number not found" });
+      const numberDoc = await NumberModel.findOne({
+        phoneNumber: fromE,
+      }).lean();
+      if (!numberDoc)
+        return res.status(400).json({ error: "from number not found" });
 
       // Reuse SignalWire LAML client inline to avoid cyclic import
       const spaceUrl = process.env.SIGNALWIRE_SPACE_URL;
       const apiToken = process.env.SIGNALWIRE_TOKEN;
       const projectId = process.env.SIGNALWIRE_PROJECT_ID;
-      if (!spaceUrl || !apiToken || !projectId) throw new Error("SignalWire env not set");
+      if (!spaceUrl || !apiToken || !projectId)
+        throw new Error("SignalWire env not set");
       const url = `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}/Messages.json`;
       const basic = Buffer.from(`${projectId}:${apiToken}`).toString("base64");
-      const form = new URLSearchParams({ To: toE, From: fromE, Body: String(body) });
-      const resp = await fetch(url, { method: "POST", body: form as any, headers: { Authorization: `Basic ${basic}` } });
+      const form = new URLSearchParams({
+        To: toE,
+        From: fromE,
+        Body: String(body),
+      });
+      const resp = await fetch(url, {
+        method: "POST",
+        body: form as any,
+        headers: { Authorization: `Basic ${basic}` },
+      });
       if (!resp.ok) {
         const txt = await resp.text();
-        return res.status(502).json({ error: `SignalWire error ${resp.status}: ${txt}` });
+        return res
+          .status(502)
+          .json({ error: `SignalWire error ${resp.status}: ${txt}` });
       }
       const data = await resp.json();
       await Message.create({
@@ -196,9 +289,17 @@ export const adminRoutes = {
     await connectDB();
     const { id } = req.params as any;
     const owned = await NumberModel.countDocuments({ ownerUserId: id });
-    if (owned > 0) return res.status(400).json({ error: "User owns numbers; transfer ownership before deletion" });
+    if (owned > 0)
+      return res
+        .status(400)
+        .json({
+          error: "User owns numbers; transfer ownership before deletion",
+        });
     await User.deleteOne({ _id: id });
-    await NumberModel.updateMany({ assignedToUserId: id }, { $unset: { assignedToUserId: 1 } });
+    await NumberModel.updateMany(
+      { assignedToUserId: id },
+      { $unset: { assignedToUserId: 1 } },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 
@@ -206,7 +307,8 @@ export const adminRoutes = {
     await connectDB();
     const { id } = req.params as any;
     const { newPassword } = req.body || {};
-    if (!newPassword || String(newPassword).length < 6) return res.status(400).json({ error: "password too short" });
+    if (!newPassword || String(newPassword).length < 6)
+      return res.status(400).json({ error: "password too short" });
     const passwordHash = await bcrypt.hash(String(newPassword), 10);
     await User.updateOne({ _id: id }, { $set: { passwordHash } });
     res.json({ ok: true });
@@ -214,7 +316,9 @@ export const adminRoutes = {
 
   listPasswordRequests: (async (_req, res) => {
     await connectDB();
-    const reqs = await PasswordRequest.find({ status: "pending" }).sort({ createdAt: -1 }).lean();
+    const reqs = await PasswordRequest.find({ status: "pending" })
+      .sort({ createdAt: -1 })
+      .lean();
     res.json({ requests: reqs });
   }) as RequestHandler,
 
@@ -222,14 +326,19 @@ export const adminRoutes = {
     await connectDB();
     const { id } = req.params as any;
     const { newPassword } = req.body || {};
-    if (!newPassword || String(newPassword).length < 6) return res.status(400).json({ error: "password too short" });
+    if (!newPassword || String(newPassword).length < 6)
+      return res.status(400).json({ error: "password too short" });
     const pr = await PasswordRequest.findById(id).lean();
-    if (!pr || pr.status !== "pending") return res.status(404).json({ error: "request not found" });
+    if (!pr || pr.status !== "pending")
+      return res.status(404).json({ error: "request not found" });
     const user = await User.findById(pr.userId).lean();
     if (!user) return res.status(404).json({ error: "user not found" });
     const passwordHash = await bcrypt.hash(String(newPassword), 10);
     await User.updateOne({ _id: user._id }, { $set: { passwordHash } });
-    await PasswordRequest.updateOne({ _id: id }, { $set: { status: "approved" } });
+    await PasswordRequest.updateOne(
+      { _id: id },
+      { $set: { status: "approved" } },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 
@@ -237,7 +346,10 @@ export const adminRoutes = {
     await connectDB();
     const { id } = req.params as any;
     const { reason } = req.body || {};
-    await PasswordRequest.updateOne({ _id: id }, { $set: { status: "rejected", reason: reason || "" } });
+    await PasswordRequest.updateOne(
+      { _id: id },
+      { $set: { status: "rejected", reason: reason || "" } },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 };

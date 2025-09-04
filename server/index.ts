@@ -63,8 +63,16 @@ export function createServer() {
   app.post("/api/sub-accounts", requireAuth, accountRoutes.subCreate);
   app.patch("/api/sub-accounts/:id", requireAuth, accountRoutes.subUpdate);
   app.delete("/api/sub-accounts/:id", requireAuth, accountRoutes.subDelete);
-  app.post("/api/wallet/checkout-session", requireAuth, accountRoutes.createCheckoutSession);
-  app.post("/api/wallet/payment-intent", requireAuth, accountRoutes.createPaymentIntent);
+  app.post(
+    "/api/wallet/checkout-session",
+    requireAuth,
+    accountRoutes.createCheckoutSession,
+  );
+  app.post(
+    "/api/wallet/payment-intent",
+    requireAuth,
+    accountRoutes.createPaymentIntent,
+  );
   app.post("/api/wallet/confirm", requireAuth, accountRoutes.confirmDeposit);
   app.post("/api/wallet/transfer", requireAuth, accountRoutes.transferToSub);
   app.post("/api/plans/choose", requireAuth, accountRoutes.choosePlan);
@@ -83,24 +91,60 @@ export function createServer() {
   // Wallet extras
   app.get("/api/wallet/transactions", requireAuth, walletRoutes.transactions);
   app.get("/api/wallet/summary", requireAuth, walletRoutes.summary);
-  app.post("/api/wallet/jazzcash/start", requireAuth, walletRoutes.startJazzCash);
-  app.post("/api/wallet/easypaisa/start", requireAuth, walletRoutes.startEasyPaisa);
+  app.post(
+    "/api/wallet/jazzcash/start",
+    requireAuth,
+    walletRoutes.startJazzCash,
+  );
+  app.post(
+    "/api/wallet/easypaisa/start",
+    requireAuth,
+    walletRoutes.startEasyPaisa,
+  );
   app.post("/api/wallet/jazzcash/ipn", walletRoutes.jazzcashIPN);
 
   // Admin routes
   app.get("/api/admin/users", requireAdmin, adminRoutes.users);
   app.get("/api/admin/users/:id", requireAdmin, adminRoutes.userDetail);
-  app.post("/api/admin/users/:id/wallet", requireAdmin, adminRoutes.walletAdjust);
-  app.post("/api/admin/users/:id/password", requireAdmin, adminRoutes.setUserPassword);
+  app.post(
+    "/api/admin/users/:id/wallet",
+    requireAdmin,
+    adminRoutes.walletAdjust,
+  );
+  app.post(
+    "/api/admin/users/:id/password",
+    requireAdmin,
+    adminRoutes.setUserPassword,
+  );
   app.delete("/api/admin/users/:id", requireAdmin, adminRoutes.deleteUser);
   app.get("/api/admin/numbers", requireAdmin, adminRoutes.numbers);
   app.post("/api/admin/numbers/assign", requireAdmin, adminRoutes.assignNumber);
-  app.post("/api/admin/numbers/unassign", requireAdmin, adminRoutes.unassignNumber);
-  app.post("/api/admin/numbers/transfer-ownership", requireAdmin, adminRoutes.transferOwnership);
+  app.post(
+    "/api/admin/numbers/unassign",
+    requireAdmin,
+    adminRoutes.unassignNumber,
+  );
+  app.post(
+    "/api/admin/numbers/transfer-ownership",
+    requireAdmin,
+    adminRoutes.transferOwnership,
+  );
   app.post("/api/admin/messages/send", requireAdmin, adminRoutes.sendMessage);
-  app.get("/api/admin/password-requests", requireAdmin, adminRoutes.listPasswordRequests);
-  app.post("/api/admin/password-requests/:id/approve", requireAdmin, adminRoutes.approvePasswordRequest);
-  app.post("/api/admin/password-requests/:id/reject", requireAdmin, adminRoutes.rejectPasswordRequest);
+  app.get(
+    "/api/admin/password-requests",
+    requireAdmin,
+    adminRoutes.listPasswordRequests,
+  );
+  app.post(
+    "/api/admin/password-requests/:id/approve",
+    requireAdmin,
+    adminRoutes.approvePasswordRequest,
+  );
+  app.post(
+    "/api/admin/password-requests/:id/reject",
+    requireAdmin,
+    adminRoutes.rejectPasswordRequest,
+  );
 
   // Global error handler to avoid crashing overlay
   app.use((err: any, _req, res, _next) => {

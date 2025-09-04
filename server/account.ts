@@ -13,13 +13,22 @@ export const accountRoutes = {
     const userId = (req as any).userId as string;
     const user = await User.findById(userId).lean();
     if (!user) return res.status(404).json({ error: "not found" });
-    res.json({ user: { firstName: user.firstName, lastName: user.lastName, phone: user.phone } });
+    res.json({
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+      },
+    });
   }) as RequestHandler,
   profileUpdate: (async (req, res) => {
     await connectDB();
     const userId = (req as any).userId as string;
     const { firstName, lastName, phone } = req.body || {};
-    await User.updateOne({ _id: userId }, { $set: { firstName, lastName, phone } });
+    await User.updateOne(
+      { _id: userId },
+      { $set: { firstName, lastName, phone } },
+    );
     res.json({ ok: true });
   }) as RequestHandler,
 
@@ -33,24 +42,43 @@ export const accountRoutes = {
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can create sub-accounts" });
+    if (!me || me.role !== "main")
+      return res
+        .status(403)
+        .json({ error: "Only main accounts can create sub-accounts" });
 
     const currentCount = await User.countDocuments({ parentUserId: userId });
     const maxSubs = getMaxSubsForPlan(me.plan);
-    if (currentCount >= maxSubs) return res.status(403).json({ error: `Plan limit reached: max ${maxSubs} sub-accounts` });
+    if (currentCount >= maxSubs)
+      return res
+        .status(403)
+        .json({ error: `Plan limit reached: max ${maxSubs} sub-accounts` });
 
-    const { email, password, firstName, lastName, phone, walletLimit } = req.body || {};
-    if (!email || !password) return res.status(400).json({ error: "email/password required" });
+    const { email, password, firstName, lastName, phone, walletLimit } =
+      req.body || {};
+    if (!email || !password)
+      return res.status(400).json({ error: "email/password required" });
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ error: "email already used" });
     const bcrypt = await import("bcryptjs");
     const passwordHash = await bcrypt.default.hash(password, 10);
-    const sub = await User.create({ email, passwordHash, firstName, lastName, phone, role: "sub", parentUserId: userId, walletBalance: 0, walletLimit });
+    const sub = await User.create({
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      phone,
+      role: "sub",
+      parentUserId: userId,
+      walletBalance: 0,
+      walletLimit,
+    });
     res.json({ sub: { id: sub._id, email: sub.email } });
   }) as RequestHandler,
 
   createCheckoutSession: (async (req, res) => {
-    if (!stripe) return res.status(500).json({ error: "Stripe not configured" });
+    if (!stripe)
+      return res.status(500).json({ error: "Stripe not configured" });
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
@@ -78,7 +106,8 @@ export const accountRoutes = {
   }) as RequestHandler,
 
   createPaymentIntent: (async (req, res) => {
-    if (!stripe) return res.status(500).json({ error: "Stripe not configured" });
+    if (!stripe)
+      return res.status(500).json({ error: "Stripe not configured" });
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
@@ -87,7 +116,13 @@ export const accountRoutes = {
     const amt = Math.round(Number(amount) * 100);
     if (!(amt > 0)) return res.status(400).json({ error: "invalid amount" });
     const { Checkout } = await import("./models");
-    await Checkout.create({ userId, amount: amt / 100, method: "card", status: "initiated", meta: {} });
+    await Checkout.create({
+      userId,
+      amount: amt / 100,
+      method: "card",
+      status: "initiated",
+      meta: {},
+    });
     const pi = await stripe.paymentIntents.create({
       amount: amt,
       currency: "usd",
@@ -98,20 +133,33 @@ export const accountRoutes = {
   }) as RequestHandler,
 
   confirmDeposit: (async (req, res) => {
-    if (!stripe) return res.status(500).json({ error: "Stripe not configured" });
+    if (!stripe)
+      return res.status(500).json({ error: "Stripe not configured" });
     await connectDB();
     const userId = (req as any).userId as string;
     const { paymentIntentId } = req.body || {};
-    if (!paymentIntentId) return res.status(400).json({ error: "paymentIntentId required" });
+    if (!paymentIntentId)
+      return res.status(400).json({ error: "paymentIntentId required" });
     const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (pi.status !== "succeeded") return res.status(400).json({ error: "payment not completed" });
-    if (pi.metadata?.userId !== String(userId)) return res.status(403).json({ error: "mismatched user" });
+    if (pi.status !== "succeeded")
+      return res.status(400).json({ error: "payment not completed" });
+    if (pi.metadata?.userId !== String(userId))
+      return res.status(403).json({ error: "mismatched user" });
     const received = (pi.amount_received ?? 0) / 100;
-    if (!(received > 0)) return res.status(400).json({ error: "no amount received" });
-    await User.updateOne({ _id: userId }, { $inc: { walletBalance: received } });
+    if (!(received > 0))
+      return res.status(400).json({ error: "no amount received" });
+    await User.updateOne(
+      { _id: userId },
+      { $inc: { walletBalance: received } },
+    );
     try {
       const { Transaction } = await import("./models");
-      await Transaction.create({ userId, type: "deposit", amount: received, meta: { stripePaymentIntentId: paymentIntentId } });
+      await Transaction.create({
+        userId,
+        type: "deposit",
+        amount: received,
+        meta: { stripePaymentIntentId: paymentIntentId },
+      });
     } catch {}
     res.json({ ok: true, added: received });
   }) as RequestHandler,
@@ -126,20 +174,35 @@ export const accountRoutes = {
     const main = await User.findById(userId);
     const sub = await User.findById(toSubUserId);
     if (!main || !sub) return res.status(404).json({ error: "user not found" });
-    if (sub.role !== "sub" || String(sub.parentUserId) !== String(main._id)) return res.status(403).json({ error: "not your sub-account" });
-    if ((main.walletBalance ?? 0) < amt) return res.status(400).json({ error: "insufficient balance" });
+    if (sub.role !== "sub" || String(sub.parentUserId) !== String(main._id))
+      return res.status(403).json({ error: "not your sub-account" });
+    if ((main.walletBalance ?? 0) < amt)
+      return res.status(400).json({ error: "insufficient balance" });
 
     if (typeof sub.walletLimit === "number" && sub.walletLimit >= 0) {
       const next = (sub.walletBalance ?? 0) + amt;
-      if (next > sub.walletLimit) return res.status(400).json({ error: "exceeds sub-account wallet limit" });
+      if (next > sub.walletLimit)
+        return res
+          .status(400)
+          .json({ error: "exceeds sub-account wallet limit" });
     }
 
     await User.updateOne({ _id: main._id }, { $inc: { walletBalance: -amt } });
     await User.updateOne({ _id: sub._id }, { $inc: { walletBalance: amt } });
     try {
       const { Transaction } = await import("./models");
-      await Transaction.create({ userId: main._id, type: "transfer", amount: amt, meta: { toSubUserId: sub._id } });
-      await Transaction.create({ userId: sub._id, type: "transfer", amount: amt, meta: { fromMainUserId: main._id } });
+      await Transaction.create({
+        userId: main._id,
+        type: "transfer",
+        amount: amt,
+        meta: { toSubUserId: sub._id },
+      });
+      await Transaction.create({
+        userId: sub._id,
+        type: "transfer",
+        amount: amt,
+        meta: { fromMainUserId: main._id },
+      });
     } catch {}
     res.json({ ok: true });
   }) as RequestHandler,
@@ -149,11 +212,16 @@ export const accountRoutes = {
     const mainId = (req as any).userId as string;
     const subId = req.params.id;
     const me = await User.findById(mainId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can edit sub-accounts" });
+    if (!me || me.role !== "main")
+      return res
+        .status(403)
+        .json({ error: "Only main accounts can edit sub-accounts" });
     const sub = await User.findById(subId);
-    if (!sub || String(sub.parentUserId) !== String(mainId)) return res.status(404).json({ error: "sub-account not found" });
+    if (!sub || String(sub.parentUserId) !== String(mainId))
+      return res.status(404).json({ error: "sub-account not found" });
 
-    const { firstName, lastName, email, password, walletLimit } = req.body || {};
+    const { firstName, lastName, email, password, walletLimit } =
+      req.body || {};
     if (email && email !== sub.email) {
       const exists = await User.findOne({ email });
       if (exists) return res.status(400).json({ error: "email already used" });
@@ -165,7 +233,9 @@ export const accountRoutes = {
       update.passwordHash = await bcrypt.default.hash(password, 10);
     }
 
-    Object.keys(update).forEach((k) => update[k] === undefined && delete update[k]);
+    Object.keys(update).forEach(
+      (k) => update[k] === undefined && delete update[k],
+    );
     await User.updateOne({ _id: sub._id }, { $set: update });
     res.json({ ok: true });
   }) as RequestHandler,
@@ -176,7 +246,8 @@ export const accountRoutes = {
     const subId = req.params.id;
     const sub = await User.findById(subId);
     if (!sub) return res.status(404).json({ error: "not found" });
-    if (sub.role !== "sub" || String(sub.parentUserId) !== String(mainId)) return res.status(403).json({ error: "not your sub-account" });
+    if (sub.role !== "sub" || String(sub.parentUserId) !== String(mainId))
+      return res.status(403).json({ error: "not your sub-account" });
 
     await User.deleteOne({ _id: sub._id });
     res.json({ ok: true });
@@ -187,18 +258,35 @@ export const accountRoutes = {
     const userId = (req as any).userId as string;
     const { plan } = req.body || {};
     const planKey = String(plan || "").toLowerCase();
-    const prices: Record<string, number> = { starter: 9, professional: 19, enterprise: 49 };
-    if (!prices[planKey]) return res.status(400).json({ error: "invalid plan" });
+    const prices: Record<string, number> = {
+      starter: 9,
+      professional: 19,
+      enterprise: 49,
+    };
+    if (!prices[planKey])
+      return res.status(400).json({ error: "invalid plan" });
 
     const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can choose plans" });
+    if (!me || me.role !== "main")
+      return res
+        .status(403)
+        .json({ error: "Only main accounts can choose plans" });
     const amount = prices[planKey];
-    if ((me.walletBalance ?? 0) < amount) return res.status(400).json({ error: "Insufficient wallet balance" });
+    if ((me.walletBalance ?? 0) < amount)
+      return res.status(400).json({ error: "Insufficient wallet balance" });
 
-    await User.updateOne({ _id: userId }, { $set: { plan: planKey }, $inc: { walletBalance: -amount } });
+    await User.updateOne(
+      { _id: userId },
+      { $set: { plan: planKey }, $inc: { walletBalance: -amount } },
+    );
     try {
       const { Transaction } = await import("./models");
-      await Transaction.create({ userId, type: "purchase", amount, meta: { kind: "plan", plan: planKey } });
+      await Transaction.create({
+        userId,
+        type: "purchase",
+        amount,
+        meta: { kind: "plan", plan: planKey },
+      });
     } catch {}
     res.json({ ok: true, plan: planKey });
   }) as RequestHandler,

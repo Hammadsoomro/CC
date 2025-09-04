@@ -15,7 +15,7 @@ const UserSchema = new Schema(
     walletLimit: { type: Number },
     plan: { type: String, default: "free" },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const NumberSchema = new Schema(
@@ -26,39 +26,67 @@ const NumberSchema = new Schema(
     assignedToUserId: { type: Schema.Types.ObjectId, ref: "User" },
     providerId: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const ContactSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     phoneNumber: { type: String, required: true },
     name: String,
     pinned: { type: Boolean, default: false },
     favorite: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const TransactionSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    type: { type: String, enum: ["deposit", "transfer", "purchase", "sms"], required: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    type: {
+      type: String,
+      enum: ["deposit", "transfer", "purchase", "sms"],
+      required: true,
+    },
     amount: { type: Number, required: true },
     meta: {},
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const CheckoutSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     amount: { type: Number, required: true },
-    method: { type: String, enum: ["card", "jazzcash", "easypaisa"], required: true },
-    status: { type: String, enum: ["initiated", "pending", "succeeded", "failed"], default: "initiated", index: true },
+    method: {
+      type: String,
+      enum: ["card", "jazzcash", "easypaisa"],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["initiated", "pending", "succeeded", "failed"],
+      default: "initiated",
+      index: true,
+    },
     meta: {},
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const MessageSchema = new Schema(
@@ -69,12 +97,17 @@ const MessageSchema = new Schema(
     from: { type: String, required: true, index: true },
     to: { type: String, required: true, index: true },
     body: { type: String, required: true },
-    direction: { type: String, enum: ["inbound", "outbound"], required: true, index: true },
+    direction: {
+      type: String,
+      enum: ["inbound", "outbound"],
+      required: true,
+      index: true,
+    },
     providerSid: { type: String },
     status: { type: String },
     error: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const PasswordRequestSchema = new Schema(
@@ -84,16 +117,29 @@ const PasswordRequestSchema = new Schema(
     phone: { type: String },
     firstName: { type: String },
     lastName: { type: String },
-    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending", index: true },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+      index: true,
+    },
     reason: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const User = mongoose.models.User || mongoose.model("User", UserSchema);
-export const NumberModel = mongoose.models.Number || mongoose.model("Number", NumberSchema);
-export const Contact = mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
-export const Transaction = mongoose.models.Transaction || mongoose.model("Transaction", TransactionSchema);
-export const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
-export const PasswordRequest = mongoose.models.PasswordRequest || mongoose.model("PasswordRequest", PasswordRequestSchema);
-export const Checkout = mongoose.models.Checkout || mongoose.model("Checkout", CheckoutSchema);
+export const NumberModel =
+  mongoose.models.Number || mongoose.model("Number", NumberSchema);
+export const Contact =
+  mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
+export const Transaction =
+  mongoose.models.Transaction ||
+  mongoose.model("Transaction", TransactionSchema);
+export const Message =
+  mongoose.models.Message || mongoose.model("Message", MessageSchema);
+export const PasswordRequest =
+  mongoose.models.PasswordRequest ||
+  mongoose.model("PasswordRequest", PasswordRequestSchema);
+export const Checkout =
+  mongoose.models.Checkout || mongoose.model("Checkout", CheckoutSchema);

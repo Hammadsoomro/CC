@@ -20,21 +20,43 @@ export default function Wallet() {
     if (r.ok) setMe((await r.json()).user);
     const token = localStorage.getItem("jwt");
     const [s, wtx] = await Promise.all([
-      fetch("/api/sub-accounts", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} }),
-      fetch("/api/wallet/transactions", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} }),
+      fetch("/api/sub-accounts", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }),
+      fetch("/api/wallet/transactions", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      }),
     ]);
     if (s.ok) setSubs((await s.json()).subs || []);
     if (wtx.ok) setTx((await wtx.json()).transactions || []);
-    const sum = await fetch("/api/wallet/summary", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    const sum = await fetch("/api/wallet/summary", {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
     if (sum.ok) setSummary(await sum.json());
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const startJazz = async () => {
     const token = localStorage.getItem("jwt");
-    const res = await fetch("/api/wallet/jazzcash/start", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
-    const data = await res.json().catch(() => ({} as any));
-    if (!res.ok || !data.endpoint || !data.params) { toast.error(data.error || "Unable to start JazzCash"); return; }
+    const res = await fetch("/api/wallet/jazzcash/start", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ amount: Number(amount) }),
+    });
+    const data = await res.json().catch(() => ({}) as any);
+    if (!res.ok || !data.endpoint || !data.params) {
+      toast.error(data.error || "Unable to start JazzCash");
+      return;
+    }
     const form = document.createElement("form");
     form.method = "POST";
     form.action = data.endpoint;
@@ -50,15 +72,34 @@ export default function Wallet() {
   };
   const startEasy = async () => {
     const token = localStorage.getItem("jwt");
-    const res = await fetch("/api/wallet/easypaisa/start", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
+    const res = await fetch("/api/wallet/easypaisa/start", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ amount: Number(amount) }),
+    });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) { toast.error(data.error || "Unable to start EasyPaisa"); return; }
+    if (!res.ok) {
+      toast.error(data.error || "Unable to start EasyPaisa");
+      return;
+    }
     toast.success("Request created. Follow EasyPaisa flow.");
   };
 
   const deposit = async () => {
     const token = localStorage.getItem("jwt");
-    const res = await fetch("/api/wallet/checkout-session", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ amount: Number(amount) }) });
+    const res = await fetch("/api/wallet/checkout-session", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ amount: Number(amount) }),
+    });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       toast.error(data.error || "Unable to create checkout session");
@@ -69,9 +110,23 @@ export default function Wallet() {
 
   const transfer = async () => {
     const token = localStorage.getItem("jwt");
-    const res = await fetch("/api/wallet/transfer", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }) });
+    const res = await fetch("/api/wallet/transfer", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ toSubUserId: toSub, amount: Number(transferAmt) }),
+    });
     const d = await res.json().catch(() => ({}));
-    if (res.ok) { toast.success("Transferred"); setTransferAmt(""); load(); } else { toast.error(d.error || "Transfer failed"); }
+    if (res.ok) {
+      toast.success("Transferred");
+      setTransferAmt("");
+      load();
+    } else {
+      toast.error(d.error || "Transfer failed");
+    }
   };
 
   return (
@@ -82,7 +137,9 @@ export default function Wallet() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="text-sm text-muted-foreground">Current Balance</div>
-          <div className="text-3xl font-bold">${me?.walletBalance?.toFixed?.(2) ?? "0.00"}</div>
+          <div className="text-3xl font-bold">
+            ${me?.walletBalance?.toFixed?.(2) ?? "0.00"}
+          </div>
         </CardContent>
       </Card>
       <Card>
@@ -91,11 +148,19 @@ export default function Wallet() {
         </CardHeader>
         <CardContent className="space-y-2">
           <div className="text-sm text-muted-foreground">Total this month</div>
-          <div className="text-3xl font-bold">${summary?.total?.toFixed?.(2) ?? "0.00"}</div>
-          <div className="text-xs text-muted-foreground">Numbers: ${summary?.numbersRent?.toFixed?.(2) ?? "0.00"} | Package: ${summary?.planRent?.toFixed?.(2) ?? "0.00"}</div>
+          <div className="text-3xl font-bold">
+            ${summary?.total?.toFixed?.(2) ?? "0.00"}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Numbers: ${summary?.numbersRent?.toFixed?.(2) ?? "0.00"} | Package:
+            ${summary?.planRent?.toFixed?.(2) ?? "0.00"}
+          </div>
           <div className="mt-2 space-y-1 text-xs">
             {summary?.perNumber?.map((n: any) => (
-              <div key={n.phoneNumber} className="flex items-center justify-between">
+              <div
+                key={n.phoneNumber}
+                className="flex items-center justify-between"
+              >
                 <span>{n.phoneNumber}</span>
                 <span>${n.monthly.toFixed(2)}</span>
               </div>
@@ -111,10 +176,22 @@ export default function Wallet() {
         <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="md:col-span-3">
             <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" type="number" min={1} step="0.01" placeholder="25.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <Input
+              id="amount"
+              type="number"
+              min={1}
+              step="0.01"
+              placeholder="25.00"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
           </div>
-          <Button onClick={startJazz} variant="default">JazzCash</Button>
-          <Button onClick={startEasy} variant="secondary">EasyPaisa</Button>
+          <Button onClick={startJazz} variant="default">
+            JazzCash
+          </Button>
+          <Button onClick={startEasy} variant="secondary">
+            EasyPaisa
+          </Button>
         </CardContent>
       </Card>
 
@@ -124,7 +201,9 @@ export default function Wallet() {
         </CardHeader>
         <CardContent>
           {tx.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No transactions yet.</div>
+            <div className="text-sm text-muted-foreground">
+              No transactions yet.
+            </div>
           ) : (
             <div className="overflow-auto">
               <table className="w-full text-sm">
@@ -139,10 +218,22 @@ export default function Wallet() {
                 <tbody>
                   {tx.map((t: any) => (
                     <tr key={t._id} className="border-t">
-                      <td className="py-2 pr-4">{new Date(t.createdAt).toLocaleString()}</td>
+                      <td className="py-2 pr-4">
+                        {new Date(t.createdAt).toLocaleString()}
+                      </td>
                       <td className="py-2 pr-4 capitalize">{t.type}</td>
-                      <td className="py-2 pr-4">${Number(t.amount).toFixed(2)}</td>
-                      <td className="py-2 pr-4 truncate">{t?.meta?.kind === 'number' ? `Number ${t.meta.phoneNumber}` : t?.meta?.kind === 'plan' ? `Plan ${t.meta.plan}` : t?.meta?.method === 'jazzcash' ? `JazzCash ${t?.meta?.txnRefNo ?? ''}` : JSON.stringify(t.meta || {})}</td>
+                      <td className="py-2 pr-4">
+                        ${Number(t.amount).toFixed(2)}
+                      </td>
+                      <td className="py-2 pr-4 truncate">
+                        {t?.meta?.kind === "number"
+                          ? `Number ${t.meta.phoneNumber}`
+                          : t?.meta?.kind === "plan"
+                            ? `Plan ${t.meta.plan}`
+                            : t?.meta?.method === "jazzcash"
+                              ? `JazzCash ${t?.meta?.txnRefNo ?? ""}`
+                              : JSON.stringify(t.meta || {})}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -160,16 +251,31 @@ export default function Wallet() {
           <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2">
               <Label htmlFor="sub">Sub-Account</Label>
-              <select id="sub" className="w-full border rounded-md h-9 px-2 bg-background" value={toSub} onChange={(e) => setToSub(e.target.value)}>
+              <select
+                id="sub"
+                className="w-full border rounded-md h-9 px-2 bg-background"
+                value={toSub}
+                onChange={(e) => setToSub(e.target.value)}
+              >
                 <option value="">Select sub-account</option>
                 {subs.map((s: any) => (
-                  <option key={s._id} value={s._id}>{s.email}</option>
+                  <option key={s._id} value={s._id}>
+                    {s.email}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
               <Label htmlFor="tamt">Amount</Label>
-              <Input id="tamt" type="number" min={1} step="0.01" placeholder="10.00" value={transferAmt} onChange={(e) => setTransferAmt(e.target.value)} />
+              <Input
+                id="tamt"
+                type="number"
+                min={1}
+                step="0.01"
+                placeholder="10.00"
+                value={transferAmt}
+                onChange={(e) => setTransferAmt(e.target.value)}
+              />
             </div>
             <div className="md:col-span-3">
               <Button onClick={transfer}>Transfer</Button>
