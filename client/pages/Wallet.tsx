@@ -39,6 +39,14 @@ export default function Wallet() {
   };
   useEffect(() => {
     load();
+    const params = new URLSearchParams(window.location.search);
+    const rcode = params.get("rcode");
+    const rmsg = params.get("rmsg");
+    if (rcode || rmsg) {
+      const ok = rcode === "000";
+      if (ok) toast.success(rmsg || "Payment successful"); else toast.error(rmsg || "Payment failed");
+      const url = new URL(window.location.href); url.search = ""; window.history.replaceState({}, "", url.toString());
+    }
   }, []);
 
   const startJazz = async () => {
