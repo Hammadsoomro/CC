@@ -19,12 +19,12 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="p-6 bg-gradient-to-br from-sky-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+    <div className="p-6 bg-zinc-50 dark:bg-slate-900">
       <div className="flex items-start gap-4">
         <AdsRail position="left" />
         <div className="flex-1 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-base">Wallet Balance</CardTitle>
               </CardHeader>
@@ -32,7 +32,7 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold">${data.walletBalance?.toFixed?.(2) ?? "0.00"}</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-base">Owned Numbers</CardTitle>
               </CardHeader>
@@ -40,7 +40,7 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold">{data.numbersCount ?? 0}</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-r from-pink-500 to-rose-500 text-white">
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-base">Total Sent SMS</CardTitle>
               </CardHeader>
@@ -48,7 +48,7 @@ export default function Dashboard() {
                 <div className="text-3xl font-bold">{data.totalSent ?? 0}</div>
               </CardContent>
             </Card>
-            <Card className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white">
+            <Card className="bg-white">
               <CardHeader>
                 <CardTitle className="text-base">Quick Tip</CardTitle>
               </CardHeader>
