@@ -62,7 +62,18 @@ export default function Login() {
       <AdsRail position="left" />
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <h1 className="text-2xl font-bold">Login</h1>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (window.history.length > 1) window.history.back(); else window.location.href = "/";
+              }}
+            >
+              ← Back
+            </Button>
+          </div>
+          <h1 className="text-2xl font-bold mt-2">Login</h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back</p>
           <Form {...form}>
             <form
