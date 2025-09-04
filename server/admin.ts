@@ -97,17 +97,17 @@ export const adminRoutes = {
   numbers: (async (_req, res) => {
     await connectDB();
     const nums = await NumberModel.find({}).lean();
-    const ownerIds = Array.from(new Set(nums.map((n: any) => String(n.ownerUserId)).filter(Boolean)));
-    const assignedIds = Array.from(new Set(nums.map((n: any) => String(n.assignedToUserId)).filter(Boolean)));
-    const ids = Array.from(new Set([...ownerIds, ...assignedIds]));
-    const users = await User.find({ _id: { $in: ids } }).select("email").lean();
+    const ownerIds = Array.from(new Set(nums.map((n: any) => n.ownerUserId).filter((v: any) => !!v)));
+    const assignedIds = Array.from(new Set(nums.map((n: any) => n.assignedToUserId).filter((v: any) => !!v)));
+    const ids: any[] = Array.from(new Set([...ownerIds, ...assignedIds]));
+    const users = ids.length ? await User.find({ _id: { $in: ids } }).select("email").lean() : [];
     const emailById: Record<string, string> = {};
     for (const u of users) emailById[String(u._id)] = u.email as any;
     res.json({ numbers: nums.map((n: any) => ({
       id: n._id,
       phoneNumber: n.phoneNumber,
-      ownerUserId: n.ownerUserId,
-      ownerEmail: emailById[String(n.ownerUserId)] || null,
+      ownerUserId: n.ownerUserId || null,
+      ownerEmail: n.ownerUserId ? emailById[String(n.ownerUserId)] || null : null,
       assignedToUserId: n.assignedToUserId || null,
       assignedEmail: n.assignedToUserId ? emailById[String(n.assignedToUserId)] || null : null,
       country: n.country || null,
