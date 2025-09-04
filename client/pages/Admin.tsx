@@ -8,16 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
+import api from "@/lib/api";
 
-async function api<T>(url: string, init?: RequestInit) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("jwt") : null;
-  const res = await fetch(url, { credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, ...(init || {}) });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt || `Request failed ${res.status}`);
-  }
-  try { return (await res.json()) as T; } catch { return undefined as unknown as T; }
-}
 
 export default function Admin() {
   const nav = useNavigate();
@@ -76,7 +68,7 @@ function UsersTab() {
     try {
       const d = await api<{ users: any[] }>("/api/admin/users");
       setUsers(d.users);
-    } catch (e: any) { setError(String(e.message || e)); }
+    } catch (e: any) { setError(String(e?.message || e)); }
     finally { setLoading(false); }
   };
 
@@ -86,7 +78,7 @@ function UsersTab() {
     try {
       const d = await api<{ user: any; owned: any[]; assigned: any[]; transactions: any[] }>(`/api/admin/users/${id}`);
       setSelected(d);
-    } catch (e: any) { setError(String(e.message || e)); }
+    } catch (e: any) { setError(String(e?.message || e)); }
   };
 
   const adjust = async () => {
@@ -97,13 +89,13 @@ function UsersTab() {
       setDelta(""); setReason("");
       await onRowClick(selected.user.id);
       await load();
-    } catch (e: any) { setError(String(e.message || e)); }
+    } catch (e: any) { setError(String(e?.message || e)); }
   };
 
   const delUser = async (id: string) => {
     if (!confirm("Delete this user?")) return;
     try { await api(`/api/admin/users/${id}`, { method: "DELETE" }); setSelected(null); await load(); }
-    catch (e: any) { setError(String(e.message || e)); }
+    catch (e: any) { setError(String(e?.message || e)); }
   };
 
   return (
@@ -215,7 +207,7 @@ function NumbersTab() {
       setNumbers(dn.numbers);
       const du = await api<{ users: any[] }>("/api/admin/users");
       setUsers(du.users);
-    } catch (e: any) { setError(String(e.message || e)); }
+    } catch (e: any) { setError(String(e?.message || e)); }
   };
 
   useEffect(() => { load(); }, []);
@@ -225,19 +217,19 @@ function NumbersTab() {
     try {
       await api("/api/admin/numbers/assign", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber, assignedToUserId: assignUser }) });
       await load();
-    } catch (e: any) { setError(String(e.message || e)); }
+    } catch (e: any) { setError(String(e?.message || e)); }
   };
 
   const doUnassign = async () => {
     if (!selectedNumber) return;
     try { await api("/api/admin/numbers/unassign", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber }) }); await load(); }
-    catch (e: any) { setError(String(e.message || e)); }
+    catch (e: any) { setError(String(e?.message || e)); }
   };
 
   const doTransfer = async () => {
     if (!selectedNumber || !assignUser) return;
     try { await api("/api/admin/numbers/transfer-ownership", { method: "POST", body: JSON.stringify({ phoneNumber: selectedNumber, newOwnerUserId: assignUser }) }); await load(); }
-    catch (e: any) { setError(String(e.message || e)); }
+    catch (e: any) { setError(String(e?.message || e)); }
   };
 
   return (
