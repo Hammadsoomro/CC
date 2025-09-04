@@ -98,23 +98,9 @@ export default function AppShell() {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <button
-            className="px-2 py-1.5 text-sm font-semibold text-left hover:underline"
-            onClick={async () => {
-              try {
-                await fetch("/api/auth/logout", {
-                  method: "POST",
-                  credentials: "include",
-                });
-              } catch {
-              } finally {
-                localStorage.removeItem("jwt");
-                window.location.href = "/";
-              }
-            }}
-          >
+          <Link to="/dashboard" className="px-2 py-1.5 text-sm font-semibold text-left hover:underline">
             Connectlify
-          </button>
+          </Link>
           <SidebarSeparator />
         </SidebarHeader>
         <SidebarContent>
@@ -283,7 +269,7 @@ export default function AppShell() {
           >
             Hide
           </button>
-          <Link to="/" className="font-semibold">
+          <Link to="/dashboard" className="font-semibold">
             Connectlify
           </Link>
           <div className="ml-auto flex items-center gap-3">
