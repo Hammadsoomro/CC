@@ -12,6 +12,7 @@ import { listSubAccounts } from "./routes/subaccounts";
 import { analyticsRoutes } from "./analytics";
 import { adminRoutes, requireAdmin, ensureAdminUser } from "./admin";
 import { walletRoutes } from "./wallet";
+import { passwordRequestRoutes } from "./password-request";
 
 export function createServer() {
   const app = express();
@@ -31,6 +32,9 @@ export function createServer() {
   app.post("/api/auth/login", authRoutes.login);
   app.post("/api/auth/logout", authRoutes.logout);
   app.get("/api/auth/me", authRoutes.me);
+
+  // Public password-change request
+  app.post("/api/password-requests", passwordRequestRoutes.create);
 
   // Ensure admin user exists if env configured
   ensureAdminUser().catch(() => {});
@@ -84,12 +88,16 @@ export function createServer() {
   app.get("/api/admin/users", requireAdmin, adminRoutes.users);
   app.get("/api/admin/users/:id", requireAdmin, adminRoutes.userDetail);
   app.post("/api/admin/users/:id/wallet", requireAdmin, adminRoutes.walletAdjust);
+  app.post("/api/admin/users/:id/password", requireAdmin, adminRoutes.setUserPassword);
   app.delete("/api/admin/users/:id", requireAdmin, adminRoutes.deleteUser);
   app.get("/api/admin/numbers", requireAdmin, adminRoutes.numbers);
   app.post("/api/admin/numbers/assign", requireAdmin, adminRoutes.assignNumber);
   app.post("/api/admin/numbers/unassign", requireAdmin, adminRoutes.unassignNumber);
   app.post("/api/admin/numbers/transfer-ownership", requireAdmin, adminRoutes.transferOwnership);
   app.post("/api/admin/messages/send", requireAdmin, adminRoutes.sendMessage);
+  app.get("/api/admin/password-requests", requireAdmin, adminRoutes.listPasswordRequests);
+  app.post("/api/admin/password-requests/:id/approve", requireAdmin, adminRoutes.approvePasswordRequest);
+  app.post("/api/admin/password-requests/:id/reject", requireAdmin, adminRoutes.rejectPasswordRequest);
 
   // Global error handler to avoid crashing overlay
   app.use((err: any, _req, res, _next) => {
