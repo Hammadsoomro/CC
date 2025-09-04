@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { AdsRail } from "@/components/layout/AdsRail";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { api } from "@/lib/api";
 
 const schema = z.object({
@@ -20,6 +23,9 @@ type Values = z.infer<typeof schema>;
 export default function Login() {
   const navigate = useNavigate();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "", agree: false as any } });
+  const reqForm = useForm<{ email: string; phone: string; firstName: string; lastName: string }>({ defaultValues: { email: "", phone: "", firstName: "", lastName: "" } });
+  const [open, setOpen] = useState(false);
+  const [reqError, setReqError] = useState<string | null>(null);
 
   const onSubmit = async (values: Values) => {
     const data = await api<{ token: string }>("/api/auth/login", { method: "POST", body: JSON.stringify({ email: values.email, password: values.password }) });
@@ -68,7 +74,51 @@ export default function Login() {
               <Button type="submit" className="w-full">Login</Button>
             </form>
           </Form>
-          <p className="mt-4 text-sm">No account? <Link to="/signup" className="underline">Sign up</Link></p>
+          <div className="mt-4 text-sm flex items-center justify-between">
+            <span>No account? <Link to="/signup" className="underline">Sign up</Link></span>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <button className="underline text-primary">Request password change</button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Verify your details</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={reqForm.handleSubmit(async (vals) => {
+                  setReqError(null);
+                  try {
+                    await api("/api/password-requests", { method: "POST", body: JSON.stringify(vals) });
+                    setOpen(false);
+                    reqForm.reset();
+                    alert("Request submitted. Admin will review and update your password.");
+                  } catch (e: any) {
+                    setReqError(String(e?.message || e));
+                  }
+                })} className="space-y-3">
+                  {reqError && <div className="text-sm text-red-600">{reqError}</div>}
+                  <div>
+                    <FormLabel>Email</FormLabel>
+                    <Input type="email" {...reqForm.register("email", { required: true })} />
+                  </div>
+                  <div>
+                    <FormLabel>Phone</FormLabel>
+                    <Input {...reqForm.register("phone", { required: true })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <FormLabel>First name</FormLabel>
+                      <Input {...reqForm.register("firstName")} />
+                    </div>
+                    <div>
+                      <FormLabel>Last name</FormLabel>
+                      <Input {...reqForm.register("lastName")} />
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full">Submit Request</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
       <AdsRail position="right" />
