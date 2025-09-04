@@ -39,7 +39,18 @@ export default function Signup() {
       <AdsRail position="left" />
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <h1 className="text-2xl font-bold">Create your account</h1>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (window.history.length > 1) window.history.back(); else window.location.href = "/";
+              }}
+            >
+              ← Back
+            </Button>
+          </div>
+          <h1 className="text-2xl font-bold mt-2">Create your account</h1>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 grid grid-cols-1 gap-4">
               <div className="grid grid-cols-2 gap-4">
