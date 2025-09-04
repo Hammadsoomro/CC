@@ -74,7 +74,7 @@ export const authRoutes = {
       .trim()
       .toLowerCase();
     const user = await User.findOne({ email: e });
-    if (!user) return res.status(400).json({ error: "invalid credentials" });
+    if (!user) return res.status(400).json({ error: "email not registered" });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(400).json({ error: "invalid credentials" });
     const token = signToken({ userId: user._id.toString() });
