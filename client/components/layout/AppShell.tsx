@@ -272,7 +272,7 @@ export default function AppShell() {
         <SidebarRail />
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 px-4">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-zinc-50 dark:bg-slate-900 px-4">
           <SidebarTrigger />
           <button
             className="text-xs text-muted-foreground hover:text-foreground"
