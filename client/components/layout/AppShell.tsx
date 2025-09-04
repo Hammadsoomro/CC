@@ -72,7 +72,7 @@ export default function AppShell() {
           setNumbers(d.numbers || []);
         }
       } catch {
-        window.location.href = "/login";
+        window.location.href = "/";
       }
     })();
   }, []);
@@ -332,7 +332,7 @@ export default function AppShell() {
                   });
                 } catch {}
                 localStorage.removeItem("jwt");
-                window.location.href = "/login";
+                window.location.href = "/";
               }}
             >
               Logout
