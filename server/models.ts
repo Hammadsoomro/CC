@@ -50,6 +50,17 @@ const TransactionSchema = new Schema(
   { timestamps: true }
 );
 
+const CheckoutSchema = new Schema(
+  {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    amount: { type: Number, required: true },
+    method: { type: String, enum: ["card", "jazzcash", "easypaisa"], required: true },
+    status: { type: String, enum: ["initiated", "pending", "succeeded", "failed"], default: "initiated", index: true },
+    meta: {},
+  },
+  { timestamps: true }
+);
+
 const MessageSchema = new Schema(
   {
     numberId: { type: Schema.Types.ObjectId, ref: "Number", index: true },
@@ -85,3 +96,4 @@ export const Contact = mongoose.models.Contact || mongoose.model("Contact", Cont
 export const Transaction = mongoose.models.Transaction || mongoose.model("Transaction", TransactionSchema);
 export const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
 export const PasswordRequest = mongoose.models.PasswordRequest || mongoose.model("PasswordRequest", PasswordRequestSchema);
+export const Checkout = mongoose.models.Checkout || mongoose.model("Checkout", CheckoutSchema);
