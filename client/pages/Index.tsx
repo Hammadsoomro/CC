@@ -1,22 +1,18 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AdsRail } from "@/components/layout/AdsRail";
-import { MarketingSidebar } from "@/components/layout/MarketingSidebar";
 import { MessageSquare, Clock, Globe, Shield } from "lucide-react";
 
 export default function Index() {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      <div className="flex">
-        <MarketingSidebar />
-        <div className="flex-1 min-w-0">
       {/* Animated background accents */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl animate-pulse" />
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
       </div>
 
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-zinc-50">
+      <header className="flex items-center justify-between px-6 py-4 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <button
           className="text-lg font-bold"
           onClick={async () => {
@@ -54,10 +50,10 @@ export default function Index() {
         <section id="hero" className="mx-auto max-w-6xl py-20 text-center">
           <div className="space-y-1">
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-sky-600">Connect with</span>
+              <span className="text-emerald-700">Connect with</span>
             </h1>
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-pink-600">Anyone</span>
+              <span className="text-emerald-600">Anyone</span>
             </h1>
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="text-emerald-500">Anywhere</span>
@@ -82,33 +78,19 @@ export default function Index() {
         <section className="mx-auto max-w-3xl pb-12">
           <div className="relative mx-auto text-center rounded-2xl border border-zinc-200/50 bg-white/70 backdrop-blur-lg shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),_0_8px_10px_-6px_rgba(0,0,0,0.1)] px-6 py-8">
             <div className="absolute left-1/2 -top-4 -translate-x-1/2">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-600 text-white">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-600 text-white">
                 <MessageSquare className="w-6 h-6" />
               </div>
             </div>
             <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7">
               “Communication works for those who work at it.”
             </blockquote>
-            <p className="mt-3 text-sm font-medium text-zinc-500">
-              — John Powell
-            </p>
+            <p className="mt-3 text-sm font-medium text-zinc-500">— John Powell</p>
             <div className="mt-4 flex items-center justify-center gap-2">
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 1"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-blue-600"
-                aria-label="slide 2"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 3"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 4"
-              />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 1" />
+              <button className="w-2 h-2 rounded-full bg-emerald-600" aria-label="slide 2" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 3" />
+              <button className="w-2 h-2 rounded-full bg-zinc-300" aria-label="slide 4" />
             </div>
           </div>
         </section>
@@ -120,33 +102,27 @@ export default function Index() {
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                 <Clock className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-zinc-900 text-center">
-                Real-time Messaging
-              </h3>
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Real-time Messaging</h3>
               <p className="mt-2 text-sm text-zinc-600 text-center">
                 Instant delivery with typing indicators, read receipts, and
                 real-time sync across devices.
               </p>
             </div>
             <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                <Globe className="w-8 h-8 text-blue-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <Globe className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-zinc-900 text-center">
-                Global Reach
-              </h3>
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Global Reach</h3>
               <p className="mt-2 text-sm text-zinc-600 text-center">
                 Numbers in 50+ countries with competitive pricing and instant
                 activation.
               </p>
             </div>
             <div className="rounded-xl border p-6 bg-white/60 backdrop-blur">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-                <Shield className="w-8 h-8 text-purple-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                <Shield className="w-8 h-8 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-zinc-900 text-center">
-                Enterprise Security
-              </h3>
+              <h3 className="text-xl font-semibold text-zinc-900 text-center">Enterprise Security</h3>
               <p className="mt-2 text-sm text-zinc-600 text-center">
                 Bank‑level encryption, compliance, and data protection for
                 businesses.
@@ -157,9 +133,7 @@ export default function Index() {
 
         {/* Pricing */}
         <section id="pricing" className="mx-auto max-w-6xl pb-16">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
-            Simple, transparent pricing
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">Simple, transparent pricing</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="rounded-xl border p-6 bg-white/70">
               <h3 className="text-xl font-semibold">Starter</h3>
@@ -217,24 +191,22 @@ export default function Index() {
 
         {/* Trusted by Thousands stats */}
         <section className="mx-auto max-w-6xl pb-24 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8">
-            Trusted by Thousands
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">Trusted by Thousands</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             <div>
-              <div className="text-4xl font-bold text-blue-600">10M+</div>
+              <div className="text-4xl font-bold text-emerald-600">10M+</div>
               <div className="text-zinc-600">Messages Sent</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-600">50+</div>
+              <div className="text-4xl font-bold text-emerald-600">50+</div>
               <div className="text-zinc-600">Countries</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-600">99.9%</div>
+              <div className="text-4xl font-bold text-emerald-600">99.9%</div>
               <div className="text-zinc-600">Uptime</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-blue-600">24/7</div>
+              <div className="text-4xl font-bold text-emerald-600">24/7</div>
               <div className="text-zinc-600">Support</div>
             </div>
           </div>
@@ -255,8 +227,6 @@ export default function Index() {
         </div>
         <div className="mt-2">© {new Date().getFullYear()} Connectlify</div>
       </footer>
-        </div>
-      </div>
     </div>
   );
 }
