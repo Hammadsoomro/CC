@@ -31,7 +31,7 @@ function hmacSha256Hex(key: string, data: string) {
     .toUpperCase();
 }
 
-function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
+function buildJazzCashParams(opts: { amount: number; checkoutId: string; userId: string }) {
   const endpoint =
     process.env.JAZZCASH_ENDPOINT ||
     "https://payments.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform";
@@ -39,6 +39,7 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
   const password = process.env.JAZZCASH_PASSWORD || "";
   const salt = process.env.JAZZCASH_INTEGRITY_SALT || "";
   const returnURL = process.env.JAZZCASH_RETURN_URL || "";
+  const txnType = process.env.JAZZCASH_TXN_TYPE || "MWALLET";
   if (!merchantId || !password || !salt || !returnURL)
     throw new Error("JazzCash env missing");
 
@@ -54,7 +55,7 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
 
   const params: Record<string, string> = {
     pp_Version: "1.1",
-    pp_TxnType: "MPAY",
+    pp_TxnType: txnType,
     pp_Language: "EN",
     pp_MerchantID: merchantId,
     pp_Password: password,
@@ -67,7 +68,7 @@ function buildJazzCashParams(opts: { amount: number; checkoutId: string }) {
     pp_Description: "Wallet Top-up",
     pp_ReturnURL: returnURL,
     pp_SubMerchantID: "",
-    ppmpf_1: "",
+    ppmpf_1: String(opts.userId),
     ppmpf_2: "",
     ppmpf_3: "",
     ppmpf_4: "",
@@ -187,6 +188,7 @@ export const walletRoutes = {
       const { endpoint, params } = buildJazzCashParams({
         amount: amt,
         checkoutId: String(checkout._id),
+        userId,
       });
       checkout.meta = {
         ...(checkout.meta || {}),
