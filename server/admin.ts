@@ -290,11 +290,9 @@ export const adminRoutes = {
     const { id } = req.params as any;
     const owned = await NumberModel.countDocuments({ ownerUserId: id });
     if (owned > 0)
-      return res
-        .status(400)
-        .json({
-          error: "User owns numbers; transfer ownership before deletion",
-        });
+      return res.status(400).json({
+        error: "User owns numbers; transfer ownership before deletion",
+      });
     await User.deleteOne({ _id: id });
     await NumberModel.updateMany(
       { assignedToUserId: id },
@@ -320,7 +318,8 @@ export const adminRoutes = {
     const { plan } = req.body || {};
     const allowed = ["free", "basic", "pro", "enterprise"];
     const p = String(plan || "").toLowerCase();
-    if (!allowed.includes(p)) return res.status(400).json({ error: "invalid plan" });
+    if (!allowed.includes(p))
+      return res.status(400).json({ error: "invalid plan" });
     const u = await User.findById(id).lean();
     if (!u) return res.status(404).json({ error: "User not found" });
     await User.updateOne({ _id: id }, { $set: { plan: p } });

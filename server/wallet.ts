@@ -31,7 +31,11 @@ function hmacSha256Hex(key: string, data: string) {
     .toUpperCase();
 }
 
-function buildJazzCashParams(opts: { amount: number; checkoutId: string; userId: string }) {
+function buildJazzCashParams(opts: {
+  amount: number;
+  checkoutId: string;
+  userId: string;
+}) {
   const endpoint =
     process.env.JAZZCASH_ENDPOINT ||
     "https://payments.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform";
@@ -268,7 +272,9 @@ export const walletRoutes = {
 
       if (billRef) {
         try {
-          const checkout = await Checkout.findById(new mongoose.Types.ObjectId(billRef));
+          const checkout = await Checkout.findById(
+            new mongoose.Types.ObjectId(billRef),
+          );
           if (checkout) {
             const ok = verifyJazzCashHash(body);
             const success = responseCode === "000";
@@ -277,8 +283,20 @@ export const walletRoutes = {
               checkout.status = "succeeded";
               await checkout.save();
               const amount = Number(checkout.amount);
-              await User.updateOne({ _id: checkout.userId }, { $inc: { walletBalance: amount } });
-              await Transaction.create({ userId: checkout.userId, type: "deposit", amount, meta: { method: "jazzcash", txnRefNo: body.pp_TxnRefNo, billRef: body.pp_BillReference } });
+              await User.updateOne(
+                { _id: checkout.userId },
+                { $inc: { walletBalance: amount } },
+              );
+              await Transaction.create({
+                userId: checkout.userId,
+                type: "deposit",
+                amount,
+                meta: {
+                  method: "jazzcash",
+                  txnRefNo: body.pp_TxnRefNo,
+                  billRef: body.pp_BillReference,
+                },
+              });
             } else if (ok && !success && checkout.status !== "failed") {
               checkout.status = "failed";
               await checkout.save();
@@ -289,7 +307,11 @@ export const walletRoutes = {
         } catch {}
       }
 
-      const q = new URLSearchParams({ rcode: responseCode, rmsg: responseMessage, rrn });
+      const q = new URLSearchParams({
+        rcode: responseCode,
+        rmsg: responseMessage,
+        rrn,
+      });
       res.redirect(`/wallet?${q.toString()}`);
     } catch {
       res.redirect("/wallet?rcode=ERR&rmsg=Payment%20processing%20error");
@@ -313,12 +335,10 @@ export const walletRoutes = {
       });
       const configured = !!process.env.EASYPAY_MERCHANT_ID;
       if (!configured)
-        return res
-          .status(501)
-          .json({
-            error: "EasyPaisa not configured",
-            checkoutId: checkout._id,
-          });
+        return res.status(501).json({
+          error: "EasyPaisa not configured",
+          checkoutId: checkout._id,
+        });
       res.json({ checkoutId: checkout._id });
     } catch (e: any) {
       res.status(500).json({ error: String(e?.message || e) });

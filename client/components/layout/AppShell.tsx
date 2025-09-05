@@ -101,18 +101,38 @@ export default function AppShell() {
       es = new EventSource("/api/messages/stream");
       es.addEventListener("message", async (ev: MessageEvent) => {
         setUnread((u) => u + 1);
-        try { const { toast } = await import("sonner"); toast.success("New SMS received"); } catch {}
-        window.dispatchEvent(new CustomEvent("sms:new", { detail: (() => { try { return JSON.parse(ev.data); } catch { return {}; } })() }));
+        try {
+          const { toast } = await import("sonner");
+          toast.success("New SMS received");
+        } catch {}
+        window.dispatchEvent(
+          new CustomEvent("sms:new", {
+            detail: (() => {
+              try {
+                return JSON.parse(ev.data);
+              } catch {
+                return {};
+              }
+            })(),
+          }),
+        );
       });
     } catch {}
-    return () => { try { es?.close(); } catch {} };
+    return () => {
+      try {
+        es?.close();
+      } catch {}
+    };
   }, []);
 
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <Link to="/dashboard" className="px-2 py-1.5 text-sm font-semibold text-left hover:underline">
+          <Link
+            to="/dashboard"
+            className="px-2 py-1.5 text-sm font-semibold text-left hover:underline"
+          >
             Connectlify
           </Link>
           <SidebarSeparator />
@@ -146,7 +166,9 @@ export default function AppShell() {
                       <MessageSquare className="mr-2" />
                       <span>Conversations</span>
                       {unread > 0 && (
-                        <span className="ml-2 inline-flex items-center justify-center rounded-full bg-rose-600 text-white text-[10px] px-1.5 h-4 min-w-4">{unread}</span>
+                        <span className="ml-2 inline-flex items-center justify-center rounded-full bg-rose-600 text-white text-[10px] px-1.5 h-4 min-w-4">
+                          {unread}
+                        </span>
                       )}
                     </NavLink>
                   </SidebarMenuButton>
