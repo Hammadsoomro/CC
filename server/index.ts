@@ -118,6 +118,11 @@ export function createServer() {
     requireAdmin,
     adminRoutes.setUserPassword,
   );
+  app.post(
+    "/api/admin/users/:id/plan",
+    requireAdmin,
+    adminRoutes.setUserPlan,
+  );
   app.delete("/api/admin/users/:id", requireAdmin, adminRoutes.deleteUser);
   app.get("/api/admin/numbers", requireAdmin, adminRoutes.numbers);
   app.post("/api/admin/numbers/assign", requireAdmin, adminRoutes.assignNumber);

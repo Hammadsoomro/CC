@@ -12,7 +12,7 @@ export default function Index() {
         <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-accent/20 blur-3xl animate-[pulse_6s_ease-in-out_infinite]" />
       </div>
 
-      <header className="flex items-center justify-between px-6 py-4 border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <header className="flex items-center justify-between px-6 py-4 border-b nav-animated">
         <button
           className="text-lg font-bold"
           onClick={async () => {
@@ -225,7 +225,7 @@ export default function Index() {
           </Link>
           .
         </div>
-        <div className="mt-2">�� {new Date().getFullYear()} Connectlify</div>
+        <div className="mt-2">© {new Date().getFullYear()} Connectlify</div>
       </footer>
     </div>
   );

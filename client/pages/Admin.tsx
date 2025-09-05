@@ -156,15 +156,43 @@ function UsersTab() {
         </CardHeader>
         <CardContent>
           {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-          <Button
-            onClick={load}
-            disabled={loading}
-            variant="outline"
-            size="sm"
-            className="mb-2"
-          >
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2 mb-2">
+            <Button
+              onClick={load}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+            >
+              Refresh
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                const rows = users.map((u) => ({
+                  email: u.email,
+                  role: u.role,
+                  wallet: (u.walletBalance ?? 0).toFixed(2),
+                  plan: u.plan,
+                  numbers: u.numbersOwned,
+                  createdAt: new Date(u.createdAt).toISOString(),
+                }));
+                const csv = [
+                  "email,role,wallet,plan,numbers,createdAt",
+                  ...rows.map((r) => Object.values(r).join(",")),
+                ].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "users.csv";
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              Export CSV
+            </Button>
+          </div>
           <Table>
             <TableCaption>Users</TableCaption>
             <TableHeader>
@@ -228,10 +256,43 @@ function UsersTab() {
                   Wallet: ${(selected.user.walletBalance ?? 0).toFixed(2)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Plan: {selected.user.plan}
+                  Plan:
+                  <span className="ml-1 inline-flex items-center gap-2">
+                    {selected.user.plan || "free"}
+                  </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   Created: {new Date(selected.user.createdAt).toLocaleString()}
+                </div>
+              </div>
+              <div>
+                <div className="font-medium mb-1">Change Tier</div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={(selected.user.plan || "free") as string}
+                    onValueChange={async (v) => {
+                      try {
+                        await api(`/api/admin/users/${selected.user.id}/plan`, {
+                          method: "POST",
+                          body: JSON.stringify({ plan: v }),
+                        });
+                        await onRowClick(selected.user.id);
+                        await load();
+                      } catch (e: any) {
+                        alert(String(e?.message || e));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Select plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="basic">Basic</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
