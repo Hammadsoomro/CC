@@ -314,6 +314,19 @@ export const adminRoutes = {
     res.json({ ok: true });
   }) as RequestHandler,
 
+  setUserPlan: (async (req, res) => {
+    await connectDB();
+    const { id } = req.params as any;
+    const { plan } = req.body || {};
+    const allowed = ["free", "basic", "pro", "enterprise"];
+    const p = String(plan || "").toLowerCase();
+    if (!allowed.includes(p)) return res.status(400).json({ error: "invalid plan" });
+    const u = await User.findById(id).lean();
+    if (!u) return res.status(404).json({ error: "User not found" });
+    await User.updateOne({ _id: id }, { $set: { plan: p } });
+    res.json({ ok: true, plan: p });
+  }) as RequestHandler,
+
   listPasswordRequests: (async (_req, res) => {
     await connectDB();
     const reqs = await PasswordRequest.find({ status: "pending" })
