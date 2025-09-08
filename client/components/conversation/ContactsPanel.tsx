@@ -7,6 +7,16 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 export interface ContactItem { _id: string; phoneNumber: string; name?: string; pinned?: boolean; favorite?: boolean }
 
+const toE164 = (n: string) => {
+  const raw = String(n || "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) return "+1" + digits;
+  if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+  return "+" + digits;
+};
+
 export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem) => void }) {
   const [contacts, setContacts] = useState<ContactItem[]>([]);
   const [newPhone, setNewPhone] = useState("");
@@ -14,6 +24,7 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<ContactItem | null>(null);
   const [editName, setEditName] = useState("");
+  const [unread, setUnread] = useState<Record<string, number>>({});
 
   const load = async () => {
     const token = localStorage.getItem("jwt");
@@ -27,18 +38,34 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
       const d = e?.detail || {};
       const phone = String(d.from || d.to || "");
       if (!phone) return;
+      // Move recent contact to top
       setContacts((cs) => {
-        const idx = cs.findIndex((c) => (c.phoneNumber?.replace(/\s|\(|\)|-/g, "") === phone) || (c.phoneNumber === phone));
+        const idx = cs.findIndex((c) => (c.phoneNumber?.replace(/\s|\(|\)|-/g, "") === phone) || (toE164(c.phoneNumber) === toE164(phone)));
         if (idx <= 0) return cs;
         const copy = cs.slice();
         const [item] = copy.splice(idx, 1);
         copy.unshift(item);
         return copy;
       });
+      // Increase unread only for inbound
+      if (d?.direction === "inbound") {
+        const key = toE164(phone);
+        setUnread((m) => ({ ...m, [key]: (m[key] || 0) + 1 }));
+      }
     };
     window.addEventListener("sms:new", onNew as any);
     return () => window.removeEventListener("sms:new", onNew as any);
   }, []);
+
+  const handleSelect = (c: ContactItem) => {
+    onSelect(c);
+    const key = toE164(c.phoneNumber);
+    const count = unread[key] || 0;
+    if (count > 0) {
+      setUnread((m) => ({ ...m, [key]: 0 }));
+      window.dispatchEvent(new CustomEvent("sms:read", { detail: { phone: key, count } }));
+    }
+  };
 
   const add = async () => {
     if (!newPhone.trim()) return;
@@ -71,8 +98,15 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
         <ul className="p-2 space-y-1">
           {contacts.map((c) => (
             <li key={c._id} className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-muted">
-              <button onClick={() => onSelect(c)} className="flex-1 text-left">
-                <div className="font-medium truncate">{c.name || c.phoneNumber}</div>
+              <button onClick={() => handleSelect(c)} className="flex-1 text-left">
+                <div className="font-medium truncate flex items-center gap-2">
+                  <span>{c.name || c.phoneNumber}</span>
+                  {(unread[toE164(c.phoneNumber)] || 0) > 0 && (
+                    <Badge className="bg-rose-600 text-white hover:bg-rose-600">
+                      {unread[toE164(c.phoneNumber)]}
+                    </Badge>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground">{c.phoneNumber}</div>
               </button>
               <div className="flex items-center gap-2">
