@@ -24,6 +24,7 @@ import {
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { api } from "@/lib/api";
+import { Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   email: z.string().email(),
@@ -47,6 +48,7 @@ export default function Login() {
   }>({ defaultValues: { email: "", phone: "", firstName: "", lastName: "" } });
   const [open, setOpen] = useState(false);
   const [reqError, setReqError] = useState<string | null>(null);
+  const [showPass, setShowPass] = useState(false);
 
   const [loginError, setLoginError] = useState<string | null>(null);
   const onSubmit = async (values: Values) => {
@@ -116,7 +118,18 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative">
+                        <Input type={showPass ? "text" : "password"} {...field} />
+                        <button
+                          type="button"
+                          aria-label={showPass ? "Hide password" : "Show password"}
+                          title={showPass ? "Hide password" : "Show password"}
+                          onClick={() => setShowPass((s) => !s)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 p-1"
+                        >
+                          {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
