@@ -53,8 +53,18 @@ export default function ContactsPanel({ onSelect }: { onSelect: (c: ContactItem)
         setUnread((m) => ({ ...m, [key]: (m[key] || 0) + 1 }));
       }
     };
+    const onRead = (e: any) => {
+      const key = String(e?.detail?.phone || "");
+      const cnt = Number(e?.detail?.count || 0);
+      if (!key || cnt <= 0) return;
+      setUnread((m) => ({ ...m, [key]: Math.max(0, (m[key] || 0) - cnt) }));
+    };
     window.addEventListener("sms:new", onNew as any);
-    return () => window.removeEventListener("sms:new", onNew as any);
+    window.addEventListener("sms:read", onRead as any);
+    return () => {
+      window.removeEventListener("sms:new", onNew as any);
+      window.removeEventListener("sms:read", onRead as any);
+    };
   }, []);
 
   const handleSelect = (c: ContactItem) => {
