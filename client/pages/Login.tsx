@@ -56,14 +56,19 @@ export default function Login() {
     try {
       const data = await api<{ token: string }>("/api/auth/login", {
         method: "POST",
-        body: JSON.stringify({ email: values.email, password: values.password }),
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
       if (data?.token) localStorage.setItem("jwt", data.token);
       navigate("/dashboard");
     } catch (e: any) {
       const msg = String(e?.message || e);
-      if (/email not registered/i.test(msg)) setLoginError("Email not registered");
-      else if (/invalid credentials/i.test(msg)) setLoginError("Invalid email or password");
+      if (/email not registered/i.test(msg))
+        setLoginError("Email not registered");
+      else if (/invalid credentials/i.test(msg))
+        setLoginError("Invalid email or password");
       else setLoginError(msg);
     }
   };
@@ -78,7 +83,8 @@ export default function Login() {
               variant="ghost"
               size="sm"
               onClick={() => {
-                if (window.history.length > 1) window.history.back(); else window.location.href = "/";
+                if (window.history.length > 1) window.history.back();
+                else window.location.href = "/";
               }}
             >
               ← Back
@@ -87,7 +93,9 @@ export default function Login() {
           <h1 className="text-2xl font-bold mt-2">Login</h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back</p>
           {loginError && (
-            <div className="mt-3 text-sm text-red-600" role="alert">{loginError}</div>
+            <div className="mt-3 text-sm text-red-600" role="alert">
+              {loginError}
+            </div>
           )}
           <Form {...form}>
             <form
@@ -119,15 +127,24 @@ export default function Login() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input type={showPass ? "text" : "password"} {...field} />
+                        <Input
+                          type={showPass ? "text" : "password"}
+                          {...field}
+                        />
                         <button
                           type="button"
-                          aria-label={showPass ? "Hide password" : "Show password"}
+                          aria-label={
+                            showPass ? "Hide password" : "Show password"
+                          }
                           title={showPass ? "Hide password" : "Show password"}
                           onClick={() => setShowPass((s) => !s)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 p-1"
                         >
-                          {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPass ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </FormControl>

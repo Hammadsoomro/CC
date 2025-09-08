@@ -13,8 +13,7 @@ const QUOTES = [
     author: "James Humes",
   },
   {
-    text:
-      "The single biggest problem in communication is the illusion that it has taken place.",
+    text: "The single biggest problem in communication is the illusion that it has taken place.",
     author: "George Bernard Shaw",
   },
   {
@@ -22,8 +21,7 @@ const QUOTES = [
     author: "Anne Morrow Lindbergh",
   },
   {
-    text:
-      "Wise men speak because they have something to say; fools because they have to say something.",
+    text: "Wise men speak because they have something to say; fools because they have to say something.",
     author: "Plato",
   },
 ];
@@ -34,40 +32,35 @@ const REVIEWS = [
     role: "Operations Lead",
     company: "Karachi Logistics",
     rating: 5,
-    text:
-      "Reliable messaging with quick delivery. Our support team response time improved immediately.",
+    text: "Reliable messaging with quick delivery. Our support team response time improved immediately.",
   },
   {
     name: "Usman Ali",
     role: "Founder",
     company: "Retail Hub",
     rating: 5,
-    text:
-      "Super simple to onboard and scale. Pricing is fair and the UI is clean.",
+    text: "Super simple to onboard and scale. Pricing is fair and the UI is clean.",
   },
   {
     name: "Sana Iqbal",
     role: "Marketing Manager",
     company: "BlueSky Tech",
     rating: 4,
-    text:
-      "Great for campaigns and two-way replies. Analytics help us track ROI easily.",
+    text: "Great for campaigns and two-way replies. Analytics help us track ROI easily.",
   },
   {
     name: "Hamza Ahmed",
     role: "Product Lead",
     company: "Northwind Apps",
     rating: 5,
-    text:
-      "The uptime and delivery rates are solid. Integrations were straightforward.",
+    text: "The uptime and delivery rates are solid. Integrations were straightforward.",
   },
   {
     name: "Maria Fatima",
     role: "Customer Success",
     company: "FinServe",
     rating: 5,
-    text:
-      "Our team loves the real-time conversation view. It keeps threads organized.",
+    text: "Our team loves the real-time conversation view. It keeps threads organized.",
   },
 ];
 

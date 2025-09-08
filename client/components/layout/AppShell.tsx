@@ -113,7 +113,9 @@ export default function AppShell() {
       es = new EventSource("/api/messages/stream");
       es.addEventListener("message", async (ev: MessageEvent) => {
         let data: any = {};
-        try { data = JSON.parse(ev.data); } catch {}
+        try {
+          data = JSON.parse(ev.data);
+        } catch {}
         if (data?.direction === "inbound") {
           setUnread((u) => u + 1);
           try {
@@ -121,9 +123,7 @@ export default function AppShell() {
             toast.success("New SMS received");
           } catch {}
         }
-        window.dispatchEvent(
-          new CustomEvent("sms:new", { detail: data }),
-        );
+        window.dispatchEvent(new CustomEvent("sms:new", { detail: data }));
       });
       onRead = (e: any) => {
         const cnt = Number(e?.detail?.count || 0);
@@ -132,8 +132,12 @@ export default function AppShell() {
       window.addEventListener("sms:read", onRead as any);
     } catch {}
     return () => {
-      try { es?.close(); } catch {}
-      try { window.removeEventListener("sms:read", onRead as any); } catch {}
+      try {
+        es?.close();
+      } catch {}
+      try {
+        window.removeEventListener("sms:read", onRead as any);
+      } catch {}
     };
   }, []);
 
@@ -156,7 +160,10 @@ export default function AppShell() {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
     } catch {}
     localStorage.removeItem("jwt");
     window.location.href = "/";
@@ -384,15 +391,22 @@ export default function AppShell() {
                     <AvatarImage src="" alt={displayName} />
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:inline text-sm font-medium">{displayName}</span>
+                  <span className="hidden sm:inline text-sm font-medium">
+                    {displayName}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col gap-1">
-                    <span className="font-medium leading-none">{displayName}</span>
+                    <span className="font-medium leading-none">
+                      {displayName}
+                    </span>
                     <span className="text-xs text-muted-foreground leading-none">
-                      Tier: <Badge variant="secondary" className="ml-1 capitalize">{me?.plan || "free"}</Badge>
+                      Tier:{" "}
+                      <Badge variant="secondary" className="ml-1 capitalize">
+                        {me?.plan || "free"}
+                      </Badge>
                     </span>
                   </div>
                 </DropdownMenuLabel>
@@ -403,7 +417,10 @@ export default function AppShell() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="text-rose-600 focus:text-rose-600">
+                <DropdownMenuItem
+                  onClick={logout}
+                  className="text-rose-600 focus:text-rose-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" /> Logout
                 </DropdownMenuItem>
               </DropdownMenuContent>

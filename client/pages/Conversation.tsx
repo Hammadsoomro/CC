@@ -2,12 +2,16 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
-import ContactsPanel, { ContactItem } from "@/components/conversation/ContactsPanel";
+import ContactsPanel, {
+  ContactItem,
+} from "@/components/conversation/ContactsPanel";
 
 export default function Conversation() {
   const [message, setMessage] = useState("");
   const [current, setCurrent] = useState<ContactItem | null>(null);
-  const [history, setHistory] = useState<{ fromMe: boolean; body: string; time: string }[]>([]);
+  const [history, setHistory] = useState<
+    { fromMe: boolean; body: string; time: string }[]
+  >([]);
 
   const toE164 = (n: string) => {
     const raw = String(n || "").trim();
@@ -21,16 +25,35 @@ export default function Conversation() {
 
   useEffect(() => {
     const run = async () => {
-      if (!current) { setHistory([]); return; }
+      if (!current) {
+        setHistory([]);
+        return;
+      }
       const token = localStorage.getItem("jwt");
       const from = localStorage.getItem("fromNumber") || "";
-      if (!from) { setHistory([]); return; }
-      const qs = new URLSearchParams({ number: from, with: current.phoneNumber }).toString();
-      const r = await fetch(`/api/messages/history?${qs}` as any, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!r.ok) { setHistory([]); return; }
+      if (!from) {
+        setHistory([]);
+        return;
+      }
+      const qs = new URLSearchParams({
+        number: from,
+        with: current.phoneNumber,
+      }).toString();
+      const r = await fetch(`/api/messages/history?${qs}` as any, {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!r.ok) {
+        setHistory([]);
+        return;
+      }
       const d = await r.json();
       const fromE = toE164(from);
-      const items = (d.messages || []).map((m: any) => ({ fromMe: m.from === fromE, body: m.body, time: m.createdAt }));
+      const items = (d.messages || []).map((m: any) => ({
+        fromMe: m.from === fromE,
+        body: m.body,
+        time: m.createdAt,
+      }));
       setHistory(items);
     };
     run();
@@ -45,13 +68,23 @@ export default function Conversation() {
       const other = toE164(current.phoneNumber);
       const a = toE164(String(d.from || ""));
       const b = toE164(String(d.to || ""));
-      const belongs = (a === fromE && b === other) || (b === fromE && a === other);
+      const belongs =
+        (a === fromE && b === other) || (b === fromE && a === other);
       if (!belongs) return;
       const fromMe = a === fromE;
-      setHistory((h) => [...h, { fromMe, body: String(d.body || ""), time: d.createdAt || new Date().toISOString() }]);
+      setHistory((h) => [
+        ...h,
+        {
+          fromMe,
+          body: String(d.body || ""),
+          time: d.createdAt || new Date().toISOString(),
+        },
+      ]);
       if (!fromMe) {
         const key = a; // inbound sender
-        window.dispatchEvent(new CustomEvent("sms:read", { detail: { phone: key, count: 1 } }));
+        window.dispatchEvent(
+          new CustomEvent("sms:read", { detail: { phone: key, count: 1 } }),
+        );
       }
     };
     window.addEventListener("sms:new", onNew as any);
@@ -62,10 +95,20 @@ export default function Conversation() {
     const token = localStorage.getItem("jwt");
     const from = localStorage.getItem("fromNumber") || undefined;
     if (!current || !message.trim()) return;
-    const res = await fetch("/api/messages/send", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ to: current.phoneNumber, body: message, from }) });
+    const res = await fetch("/api/messages/send", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ to: current.phoneNumber, body: message, from }),
+    });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      import("sonner").then(({ toast }) => toast.error(data.error || "Failed to send"));
+      import("sonner").then(({ toast }) =>
+        toast.error(data.error || "Failed to send"),
+      );
       return;
     }
     const now = new Date().toISOString();
@@ -79,21 +122,55 @@ export default function Conversation() {
         <ContactsPanel onSelect={setCurrent} />
       </aside>
       <section className="col-span-9 flex flex-col">
-        <div className="border-b p-3 text-sm text-muted-foreground">{current ? `Conversation with ${current.name || current.phoneNumber}` : "Select a contact"}</div>
+        <div className="border-b p-3 text-sm text-muted-foreground">
+          {current
+            ? `Conversation with ${current.name || current.phoneNumber}`
+            : "Select a contact"}
+        </div>
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-3">
-            {!current && <div className="text-sm text-muted-foreground">No conversation selected.</div>}
+            {!current && (
+              <div className="text-sm text-muted-foreground">
+                No conversation selected.
+              </div>
+            )}
             {history.map((m, i) => (
-              <div key={i} className={`max-w-[65%] ${m.fromMe ? 'ml-auto text-right' : ''}`}>
-                <div className={`rounded-lg p-2 ${m.fromMe ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>{m.body}</div>
-                <div className="mt-1 text-[10px] text-muted-foreground">{new Date(m.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+              <div
+                key={i}
+                className={`max-w-[65%] ${m.fromMe ? "ml-auto text-right" : ""}`}
+              >
+                <div
+                  className={`rounded-lg p-2 ${m.fromMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}
+                >
+                  {m.body}
+                </div>
+                <div className="mt-1 text-[10px] text-muted-foreground">
+                  {new Date(m.time).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </div>
               </div>
             ))}
           </div>
         </ScrollArea>
         <div className="border-t p-3 flex items-center gap-2">
-          <Input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type your message" onKeyDown={async (e) => { if (e.key === 'Enter' && message.trim() && current) { await send(); } }} />
-          <Button onClick={async () => current && (await send())} disabled={!current}>Send</Button>
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type your message"
+            onKeyDown={async (e) => {
+              if (e.key === "Enter" && message.trim() && current) {
+                await send();
+              }
+            }}
+          />
+          <Button
+            onClick={async () => current && (await send())}
+            disabled={!current}
+          >
+            Send
+          </Button>
         </div>
       </section>
     </div>
