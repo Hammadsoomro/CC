@@ -1,8 +1,43 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Clock, Globe, Shield } from "lucide-react";
 
+const QUOTES = [
+  {
+    text: "Communication works for those who work at it.",
+    author: "John Powell",
+  },
+  {
+    text: "The art of communication is the language of leadership.",
+    author: "James Humes",
+  },
+  {
+    text:
+      "The single biggest problem in communication is the illusion that it has taken place.",
+    author: "George Bernard Shaw",
+  },
+  {
+    text: "Good communication is just as stimulating as black coffee.",
+    author: "Anne Morrow Lindbergh",
+  },
+  {
+    text:
+      "Wise men speak because they have something to say; fools because they have to say something.",
+    author: "Plato",
+  },
+];
+
 export default function Index() {
+  const [quoteIndex, setQuoteIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setQuoteIndex((i) => (i + 1) % QUOTES.length);
+    }, 4000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated background accents */}
@@ -86,29 +121,23 @@ export default function Index() {
                 <MessageSquare className="w-6 h-6" />
               </div>
             </div>
-            <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7">
-              “Communication works for those who work at it.”
+            <blockquote className="mt-4 text-zinc-700 italic text-lg leading-7 transition-opacity duration-500">
+              “{QUOTES[quoteIndex].text}”
             </blockquote>
-            <p className="mt-3 text-sm font-medium text-zinc-500">
-              — John Powell
+            <p className="mt-3 text-sm font-medium text-zinc-500 transition-opacity duration-500">
+              — {QUOTES[quoteIndex].author}
             </p>
             <div className="mt-4 flex items-center justify-center gap-2">
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 1"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-emerald-600"
-                aria-label="slide 2"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 3"
-              />
-              <button
-                className="w-2 h-2 rounded-full bg-zinc-300"
-                aria-label="slide 4"
-              />
+              {QUOTES.map((_, i) => (
+                <button
+                  key={i}
+                  className={`w-2 h-2 rounded-full ${
+                    i === quoteIndex ? "bg-emerald-600" : "bg-zinc-300"
+                  }`}
+                  aria-label={`slide ${i + 1}`}
+                  onClick={() => setQuoteIndex(i)}
+                />
+              ))}
             </div>
           </div>
         </section>
