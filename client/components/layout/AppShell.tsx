@@ -28,8 +28,19 @@ import {
   HandCoins,
   Phone,
   ListOrdered,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -38,7 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export default function AppShell() {
   const [me, setMe] = useState<any>(null);
@@ -124,6 +135,31 @@ export default function AppShell() {
       } catch {}
     };
   }, []);
+
+  const displayName = useMemo(() => {
+    const f = me?.firstName?.trim?.();
+    const l = me?.lastName?.trim?.();
+    if (f || l) return [f, l].filter(Boolean).join(" ");
+    return me?.email || "User";
+  }, [me]);
+
+  const initials = useMemo(() => {
+    const base = displayName || me?.email || "U";
+    return base
+      .split(" ")
+      .map((p: string) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [displayName, me]);
+
+  const logout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    } catch {}
+    localStorage.removeItem("jwt");
+    window.location.href = "/";
+  };
 
   return (
     <SidebarProvider>
@@ -340,23 +376,38 @@ export default function AppShell() {
                 )}
               </SelectContent>
             </Select>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/settings">Settings</Link>
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await fetch("/api/auth/logout", {
-                    method: "POST",
-                    credentials: "include",
-                  });
-                } catch {}
-                localStorage.removeItem("jwt");
-                window.location.href = "/";
-              }}
-            >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="inline-flex items-center gap-2 rounded-full border px-2 py-1 hover:bg-accent">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="" alt={displayName} />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline text-sm font-medium">{displayName}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium leading-none">{displayName}</span>
+                    <span className="text-xs text-muted-foreground leading-none">
+                      Tier: <Badge variant="secondary" className="ml-1 capitalize">{me?.plan || "free"}</Badge>
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" /> Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-rose-600 focus:text-rose-600">
+                  <LogOut className="mr-2 h-4 w-4" /> Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="secondary" size="sm" onClick={logout}>
               Logout
             </Button>
           </div>
