@@ -108,6 +108,7 @@ export default function AppShell() {
 
   useEffect(() => {
     let es: EventSource | null = null;
+    let onRead: any;
     try {
       es = new EventSource("/api/messages/stream");
       es.addEventListener("message", async (ev: MessageEvent) => {
@@ -124,17 +125,15 @@ export default function AppShell() {
           new CustomEvent("sms:new", { detail: data }),
         );
       });
-      const onRead = (e: any) => {
+      onRead = (e: any) => {
         const cnt = Number(e?.detail?.count || 0);
         if (cnt > 0) setUnread((u) => Math.max(0, u - cnt));
       };
       window.addEventListener("sms:read", onRead as any);
     } catch {}
     return () => {
-      try {
-        es?.close();
-      } catch {}
-      try { window.removeEventListener("sms:read", (() => {}) as any); } catch {}
+      try { es?.close(); } catch {}
+      try { window.removeEventListener("sms:read", onRead as any); } catch {}
     };
   }, []);
 
