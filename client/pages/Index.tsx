@@ -28,6 +28,58 @@ const QUOTES = [
   },
 ];
 
+const REVIEWS = [
+  {
+    name: "Ayesha Khan",
+    role: "Operations Lead",
+    company: "Karachi Logistics",
+    rating: 5,
+    text:
+      "Reliable messaging with quick delivery. Our support team response time improved immediately.",
+  },
+  {
+    name: "Usman Ali",
+    role: "Founder",
+    company: "Retail Hub",
+    rating: 5,
+    text:
+      "Super simple to onboard and scale. Pricing is fair and the UI is clean.",
+  },
+  {
+    name: "Sana Iqbal",
+    role: "Marketing Manager",
+    company: "BlueSky Tech",
+    rating: 4,
+    text:
+      "Great for campaigns and two-way replies. Analytics help us track ROI easily.",
+  },
+  {
+    name: "Hamza Ahmed",
+    role: "Product Lead",
+    company: "Northwind Apps",
+    rating: 5,
+    text:
+      "The uptime and delivery rates are solid. Integrations were straightforward.",
+  },
+  {
+    name: "Maria Fatima",
+    role: "Customer Success",
+    company: "FinServe",
+    rating: 5,
+    text:
+      "Our team loves the real-time conversation view. It keeps threads organized.",
+  },
+];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export default function Index() {
   const [quoteIndex, setQuoteIndex] = useState(0);
 
@@ -181,6 +233,35 @@ export default function Index() {
                 businesses.
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Reviews (sample from early testers) */}
+        <section id="reviews" className="mx-auto max-w-6xl pb-16">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">
+            From early testers
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {REVIEWS.map((r) => (
+              <div key={r.name} className="rounded-xl border p-6 bg-white/70">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold">
+                    {initials(r.name)}
+                  </div>
+                  <div>
+                    <div className="font-medium text-zinc-900">{r.name}</div>
+                    <div className="text-xs text-zinc-500">
+                      {r.role} · {r.company}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-emerald-600 text-sm">
+                  {"★".repeat(r.rating)}
+                  {"☆".repeat(5 - r.rating)}
+                </div>
+                <p className="mt-3 text-sm text-zinc-700">{r.text}</p>
+              </div>
+            ))}
           </div>
         </section>
 
