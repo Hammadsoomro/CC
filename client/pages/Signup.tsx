@@ -8,6 +8,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { AdsRail } from "@/components/layout/AdsRail";
 import { api } from "@/lib/api";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 const schema = z.object({
   firstName: z.string().min(1),
@@ -27,6 +29,8 @@ type Values = z.infer<typeof schema>;
 export default function Signup() {
   const navigate = useNavigate();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "", agree: false as any } });
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const onSubmit = async (values: Values) => {
     const data = await api<{ token: string }>("/api/auth/signup", { method: "POST", body: JSON.stringify({ email: values.email, password: values.password, firstName: values.firstName, lastName: values.lastName, phone: values.phone }) });
@@ -96,7 +100,18 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative">
+                        <Input type={showPass ? "text" : "password"} {...field} />
+                        <button
+                          type="button"
+                          aria-label={showPass ? "Hide password" : "Show password"}
+                          title={showPass ? "Hide password" : "Show password"}
+                          onClick={() => setShowPass((s) => !s)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 p-1"
+                        >
+                          {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,7 +120,18 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Confirm password</FormLabel>
                     <FormControl>
-                      <Input type="password" {...field} />
+                      <div className="relative">
+                        <Input type={showConfirm ? "text" : "password"} {...field} />
+                        <button
+                          type="button"
+                          aria-label={showConfirm ? "Hide password" : "Show password"}
+                          title={showConfirm ? "Hide password" : "Show password"}
+                          onClick={() => setShowConfirm((s) => !s)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 p-1"
+                        >
+                          {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
