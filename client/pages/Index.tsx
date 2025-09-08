@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { AdsRail } from "@/components/layout/AdsRail";
 import { MessageSquare, Clock, Globe, Shield } from "lucide-react";
 
 export default function Index() {
@@ -43,10 +42,6 @@ export default function Index() {
       </header>
 
       <main className="px-6">
-        <div className="hidden xl:flex justify-between max-w-6xl mx-auto py-6">
-          <AdsRail position="left" />
-          <AdsRail position="right" />
-        </div>
         <section id="hero" className="mx-auto max-w-6xl py-20 text-center">
           <div className="space-y-1">
             <h1
