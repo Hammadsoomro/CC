@@ -111,28 +111,30 @@ export default function AppShell() {
     try {
       es = new EventSource("/api/messages/stream");
       es.addEventListener("message", async (ev: MessageEvent) => {
-        setUnread((u) => u + 1);
-        try {
-          const { toast } = await import("sonner");
-          toast.success("New SMS received");
-        } catch {}
+        let data: any = {};
+        try { data = JSON.parse(ev.data); } catch {}
+        if (data?.direction === "inbound") {
+          setUnread((u) => u + 1);
+          try {
+            const { toast } = await import("sonner");
+            toast.success("New SMS received");
+          } catch {}
+        }
         window.dispatchEvent(
-          new CustomEvent("sms:new", {
-            detail: (() => {
-              try {
-                return JSON.parse(ev.data);
-              } catch {
-                return {};
-              }
-            })(),
-          }),
+          new CustomEvent("sms:new", { detail: data }),
         );
       });
+      const onRead = (e: any) => {
+        const cnt = Number(e?.detail?.count || 0);
+        if (cnt > 0) setUnread((u) => Math.max(0, u - cnt));
+      };
+      window.addEventListener("sms:read", onRead as any);
     } catch {}
     return () => {
       try {
         es?.close();
       } catch {}
+      try { window.removeEventListener("sms:read", (() => {}) as any); } catch {}
     };
   }, []);
 
