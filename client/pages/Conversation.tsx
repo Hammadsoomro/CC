@@ -47,7 +47,12 @@ export default function Conversation() {
       const b = toE164(String(d.to || ""));
       const belongs = (a === fromE && b === other) || (b === fromE && a === other);
       if (!belongs) return;
-      setHistory((h) => [...h, { fromMe: a === fromE, body: String(d.body || ""), time: d.createdAt || new Date().toISOString() }]);
+      const fromMe = a === fromE;
+      setHistory((h) => [...h, { fromMe, body: String(d.body || ""), time: d.createdAt || new Date().toISOString() }]);
+      if (!fromMe) {
+        const key = a; // inbound sender
+        window.dispatchEvent(new CustomEvent("sms:read", { detail: { phone: key, count: 1 } }));
+      }
     };
     window.addEventListener("sms:new", onNew as any);
     return () => window.removeEventListener("sms:new", onNew as any);
