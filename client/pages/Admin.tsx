@@ -424,13 +424,23 @@ function NumbersTab() {
     load();
   }, []);
 
+  const toE164 = (n: string) => {
+    const raw = String(n || "").trim();
+    if (!raw) return "";
+    if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) return "+1" + digits;
+    if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+    return "+" + digits;
+  };
+
   const doAssign = async () => {
     if (!selectedNumber || !assignUser) return;
     try {
       await api("/api/admin/numbers/assign", {
         method: "POST",
         body: JSON.stringify({
-          phoneNumber: selectedNumber,
+          phoneNumber: toE164(selectedNumber),
           assignedToUserId: assignUser,
         }),
       });
@@ -445,7 +455,7 @@ function NumbersTab() {
     try {
       await api("/api/admin/numbers/unassign", {
         method: "POST",
-        body: JSON.stringify({ phoneNumber: selectedNumber }),
+        body: JSON.stringify({ phoneNumber: toE164(selectedNumber) }),
       });
       await load();
     } catch (e: any) {
@@ -459,7 +469,7 @@ function NumbersTab() {
       await api("/api/admin/numbers/transfer-ownership", {
         method: "POST",
         body: JSON.stringify({
-          phoneNumber: selectedNumber,
+          phoneNumber: toE164(selectedNumber),
           newOwnerUserId: assignUser,
         }),
       });
