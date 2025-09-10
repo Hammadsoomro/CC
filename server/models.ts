@@ -2,6 +2,21 @@ import mongoose, { Schema, Types } from "mongoose";
 
 export type Role = "main" | "sub" | "admin";
 
+export interface IUser {
+  email: string;
+  passwordHash: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  role: Role;
+  parentUserId?: Types.ObjectId;
+  walletBalance?: number;
+  walletLimit?: number;
+  plan?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const UserSchema = new Schema(
   {
     email: { type: String, required: true, unique: true, index: true },
