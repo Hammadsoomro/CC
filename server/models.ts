@@ -128,18 +128,19 @@ const PasswordRequestSchema = new Schema(
   { timestamps: true },
 );
 
-export const User = mongoose.models.User || mongoose.model("User", UserSchema);
-export const NumberModel =
-  mongoose.models.Number || mongoose.model("Number", NumberSchema);
-export const Contact =
-  mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
-export const Transaction =
-  mongoose.models.Transaction ||
+export const User: mongoose.Model<any> =
+  (mongoose.models.User as any) || mongoose.model("User", UserSchema);
+export const NumberModel: mongoose.Model<any> =
+  (mongoose.models.Number as any) || mongoose.model("Number", NumberSchema);
+export const Contact: mongoose.Model<any> =
+  (mongoose.models.Contact as any) || mongoose.model("Contact", ContactSchema);
+export const Transaction: mongoose.Model<any> =
+  (mongoose.models.Transaction as any) ||
   mongoose.model("Transaction", TransactionSchema);
-export const Message =
-  mongoose.models.Message || mongoose.model("Message", MessageSchema);
-export const PasswordRequest =
-  mongoose.models.PasswordRequest ||
+export const Message: mongoose.Model<any> =
+  (mongoose.models.Message as any) || mongoose.model("Message", MessageSchema);
+export const PasswordRequest: mongoose.Model<any> =
+  (mongoose.models.PasswordRequest as any) ||
   mongoose.model("PasswordRequest", PasswordRequestSchema);
-export const Checkout =
-  mongoose.models.Checkout || mongoose.model("Checkout", CheckoutSchema);
+export const Checkout: mongoose.Model<any> =
+  (mongoose.models.Checkout as any) || mongoose.model("Checkout", CheckoutSchema);
