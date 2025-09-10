@@ -143,8 +143,9 @@ const PasswordRequestSchema = new Schema(
   { timestamps: true },
 );
 
-export const User: mongoose.Model<any> =
-  (mongoose.models.User as any) || mongoose.model("User", UserSchema);
+export const User: mongoose.Model<IUser> =
+  ((mongoose.models.User as unknown) as mongoose.Model<IUser>) ||
+  mongoose.model<IUser>("User", UserSchema);
 export const NumberModel: mongoose.Model<any> =
   (mongoose.models.Number as any) || mongoose.model("Number", NumberSchema);
 export const Contact: mongoose.Model<any> =
