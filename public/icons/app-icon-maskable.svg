@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img">
+  <!-- Full-bleed background for maskable safety -->
+  <rect width="512" height="512" fill="#10b981"/>
+  <!-- Safe-zone content -->
+  <g fill="#ffffff" transform="translate(256 256)">
+    <path d="M-88-128c-88 0-160 72-160 160s72 160 160 160c54 0 98-23 128-64l-44-30c-22 30-48 46-84 46-64 0-112-48-112-112s48-112 112-112c36 0 62 16 84 46l44-30c-30-41-74-64-128-64z"/>
+  </g>
+</svg>

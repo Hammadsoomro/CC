@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" role="img">
+  <rect width="512" height="512" rx="96" fill="#10b981"/>
+  <g fill="#ffffff" transform="translate(256 256)">
+    <path d="M-96 0a96 96 0 1 1 0 0zm0-96a96 96 0 1 0 0 192 96 96 0 1 0 0-192z" opacity="0"/>
+    <path d="M-40-120c-84 0-152 68-152 152s68 152 152 152c45 0 83-18 110-50l-40-32c-19 22-42 34-70 34-54 0-96-42-96-104s42-104 96-104c28 0 51 12 70 34l40-32c-27-32-65-50-110-50z"/>
+  </g>
+</svg>

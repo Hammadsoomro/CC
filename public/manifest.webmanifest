@@ -1,0 +1,24 @@
+{
+  "name": "Connectlify",
+  "short_name": "Connectlify",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "description": "Messaging platform for numbers, contacts, and conversations.",
+  "icons": [
+    {
+      "src": "/icons/app-icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/app-icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
