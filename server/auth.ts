@@ -5,15 +5,27 @@ import { User } from "./models";
 import { connectDB } from "./db";
 
 const COOKIE_NAME = "connectlify_jwt";
-const cookieOpts = { httpOnly: true, sameSite: "none" as const, secure: true };
+const isProd = process.env.NODE_ENV === "production";
+const cookieOpts = {
+  httpOnly: true,
+  sameSite: (isProd ? "lax" : "lax") as const,
+  secure: isProd,
+} as const;
+
+function getJwtSecret() {
+  const s = process.env.JWT_SECRET;
+  if (s && s.trim()) return s.trim();
+  if (isProd) throw new Error("JWT_SECRET is not set");
+  return "dev_secret_change";
+}
 
 export function signToken(payload: object) {
-  const secret = process.env.JWT_SECRET || "dev_secret_change";
+  const secret = getJwtSecret();
   return jwt.sign(payload, secret, { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string) {
-  const secret = process.env.JWT_SECRET || "dev_secret_change";
+  const secret = getJwtSecret();
   return jwt.verify(token, secret) as any;
 }
 
