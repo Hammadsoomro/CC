@@ -38,6 +38,15 @@ export function createServer() {
 
   // Health
   app.get("/health", (_req, res) => res.json({ ok: true }));
+  app.get("/api/health/db", async (_req, res) => {
+    try {
+      const { connectDB } = await import("./db");
+      await connectDB();
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ ok: false, error: String(e?.message || e) });
+    }
+  });
 
   // Auth
   app.post("/api/auth/signup", authRoutes.signup);
