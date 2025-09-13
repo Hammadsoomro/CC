@@ -19,7 +19,32 @@ export function createServer() {
   app.set("trust proxy", 1);
 
   // Middleware
-  app.use(cors({ credentials: true, origin: true }));
+  const defaultOrigins = [
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://connectlify.netlify.app",
+  ];
+  const extra = (process.env.ALLOWED_ORIGINS || "")
+    .split(/[,\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const allowed = new Set([...defaultOrigins, ...extra]);
+  app.use(
+    cors({
+      credentials: true,
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        try {
+          const o = new URL(origin).origin;
+          if (allowed.has(o)) return cb(null, true);
+        } catch {}
+        return cb(new Error("CORS: origin not allowed"));
+      },
+      optionsSuccessStatus: 200,
+    }),
+  );
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
