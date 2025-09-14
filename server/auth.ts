@@ -36,10 +36,31 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
       (req.headers.authorization?.startsWith("Bearer ")
         ? req.headers.authorization.split(" ")[1]
         : undefined);
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
-    const decoded = verifyToken(token);
-    (req as any).userId = decoded.userId;
-    next();
+    if (token) {
+      const decoded = verifyToken(token);
+      (req as any).userId = decoded.userId;
+      return next();
+    }
+
+    // No token -> fallback to admin user if configured (makes app public without login)
+    await connectDB();
+    const adminEmailRaw = process.env.ADMIN_EMAIL;
+    if (!adminEmailRaw) return res.status(401).json({ error: "Unauthorized" });
+    const adminEmail = (adminEmailRaw || "").trim().toLowerCase();
+    let admin = await User.findOne({ email: adminEmail });
+    if (!admin) {
+      const pwd = process.env.ADMIN_PASSWORD || Math.random().toString(36).slice(2);
+      const passwordHash = await bcrypt.hash(pwd, 10);
+      admin = await User.create({
+        email: adminEmail,
+        passwordHash,
+        role: "admin",
+        firstName: "Admin",
+        lastName: "",
+      });
+    }
+    (req as any).userId = String(admin._id);
+    return next();
   } catch (e) {
     return res.status(401).json({ error: "Unauthorized" });
   }
