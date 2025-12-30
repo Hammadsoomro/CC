@@ -68,7 +68,11 @@ export default function AppShell() {
           credentials: "include",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        if (r.status === 401) throw new Error("unauth");
+        if (!r.ok) {
+          localStorage.removeItem("jwt");
+          window.location.href = "/login";
+          return;
+        }
         const { user } = await r.json();
         setMe(user);
         const n = await fetch("/api/numbers", {
@@ -83,7 +87,8 @@ export default function AppShell() {
           setNumbers(d.numbers || []);
         }
       } catch {
-        window.location.href = "/";
+        localStorage.removeItem("jwt");
+        window.location.href = "/login";
       }
     })();
   }, []);
