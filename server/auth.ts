@@ -49,7 +49,8 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
     const adminEmail = (adminEmailRaw || "").trim().toLowerCase();
     let admin = await User.findOne({ email: adminEmail });
     if (!admin) {
-      const pwd = process.env.ADMIN_PASSWORD || Math.random().toString(36).slice(2);
+      const pwd =
+        process.env.ADMIN_PASSWORD || Math.random().toString(36).slice(2);
       const passwordHash = await bcrypt.hash(pwd, 10);
       admin = await User.create({
         email: adminEmail,

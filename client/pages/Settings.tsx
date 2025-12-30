@@ -32,13 +32,18 @@ export default function Settings() {
           setPhone(d.user.phone || "");
         }
         const token = localStorage.getItem("jwt");
-        const me = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        const me = await fetch("/api/auth/me", {
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (me.ok) {
           const md = await me.json();
           setRole(md.user.role || "main");
         }
 
-        const creds = await fetch("/api/twilio/credentials", { credentials: "include" });
+        const creds = await fetch("/api/twilio/credentials", {
+          credentials: "include",
+        });
         if (creds.ok) {
           const d = await creds.json();
           setTwilioConnected(d.connected || false);
@@ -49,8 +54,14 @@ export default function Settings() {
   }, []);
 
   const save = async () => {
-    const res = await fetch("/api/profile", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ firstName, lastName, phone }) });
-    if (res.ok) toast.success("Saved"); else toast.error("Failed to save");
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstName, lastName, phone }),
+    });
+    if (res.ok) toast.success("Saved");
+    else toast.error("Failed to save");
   };
 
   const saveTwilio = async () => {
@@ -65,7 +76,11 @@ export default function Settings() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountSid: twilioAccountSid, authToken: twilioAuthToken, phoneNumber: twilioPhoneNumber })
+        body: JSON.stringify({
+          accountSid: twilioAccountSid,
+          authToken: twilioAuthToken,
+          phoneNumber: twilioPhoneNumber,
+        }),
       });
       if (res.ok) {
         toast.success("Twilio credentials saved");
@@ -88,7 +103,7 @@ export default function Settings() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
       if (res.ok) {
         const data = await res.json();
@@ -113,7 +128,7 @@ export default function Settings() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
       if (res.ok) {
         toast.success("Twilio disconnected");
@@ -148,15 +163,27 @@ export default function Settings() {
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="fn">First name</Label>
-                  <Input id="fn" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                  <Input
+                    id="fn"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="ln">Last name</Label>
-                  <Input id="ln" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                  <Input
+                    id="ln"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="ph">Phone</Label>
-                  <Input id="ph" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                  <Input
+                    id="ph"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <Button onClick={save}>Save</Button>
@@ -168,11 +195,29 @@ export default function Settings() {
                 <CardTitle>Account</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" variant="outline" onClick={() => nav("/pricing")}>Manage Plan</Button>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => nav("/pricing")}
+                >
+                  Manage Plan
+                </Button>
                 {role === "main" && (
-                  <Button className="w-full" variant="outline" onClick={() => nav("/sub-accounts")}>Sub-Accounts</Button>
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => nav("/sub-accounts")}
+                  >
+                    Sub-Accounts
+                  </Button>
                 )}
-                <Button className="w-full" variant="outline" onClick={() => nav("/wallet")}>Wallet</Button>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => nav("/wallet")}
+                >
+                  Wallet
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -186,9 +231,13 @@ export default function Settings() {
             <CardContent className="space-y-4">
               {twilioConnected ? (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm font-medium text-green-800">✓ Twilio Connected</p>
+                  <p className="text-sm font-medium text-green-800">
+                    ✓ Twilio Connected
+                  </p>
                   {twilioPhoneNumber && (
-                    <p className="text-sm text-green-700 mt-1">Phone: {twilioPhoneNumber}</p>
+                    <p className="text-sm text-green-700 mt-1">
+                      Phone: {twilioPhoneNumber}
+                    </p>
                   )}
                   <Button
                     variant="destructive"
@@ -203,7 +252,9 @@ export default function Settings() {
               ) : (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Connect your Twilio account to send and receive SMS messages. Your credentials will be available to all your sub-accounts.
+                    Connect your Twilio account to send and receive SMS
+                    messages. Your credentials will be available to all your
+                    sub-accounts.
                   </p>
                   <div>
                     <Label htmlFor="sid">Account SID</Label>
@@ -237,14 +288,18 @@ export default function Settings() {
                   <div className="flex gap-2">
                     <Button
                       onClick={saveTwilio}
-                      disabled={twilioLoading || !twilioAccountSid || !twilioAuthToken}
+                      disabled={
+                        twilioLoading || !twilioAccountSid || !twilioAuthToken
+                      }
                     >
                       {twilioLoading ? "Saving..." : "Connect Twilio"}
                     </Button>
                     <Button
                       variant="outline"
                       onClick={testTwilio}
-                      disabled={twilioLoading || !twilioAccountSid || !twilioAuthToken}
+                      disabled={
+                        twilioLoading || !twilioAccountSid || !twilioAuthToken
+                      }
                     >
                       {twilioLoading ? "Testing..." : "Test Connection"}
                     </Button>

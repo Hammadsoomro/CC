@@ -113,7 +113,11 @@ export function createServer() {
 
   // Twilio credentials
   app.get("/api/twilio/credentials", requireAuth, twilioRoutes.getCredentials);
-  app.post("/api/twilio/credentials", requireAuth, twilioRoutes.saveCredentials);
+  app.post(
+    "/api/twilio/credentials",
+    requireAuth,
+    twilioRoutes.saveCredentials,
+  );
   app.post("/api/twilio/disconnect", requireAuth, twilioRoutes.disconnect);
   app.post("/api/twilio/test", requireAuth, twilioRoutes.testConnection);
 

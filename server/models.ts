@@ -150,7 +150,7 @@ const PasswordRequestSchema = new Schema(
 );
 
 export const User: mongoose.Model<IUser> =
-  ((mongoose.models.User as unknown) as mongoose.Model<IUser>) ||
+  (mongoose.models.User as unknown as mongoose.Model<IUser>) ||
   mongoose.model<IUser>("User", UserSchema);
 export const NumberModel: mongoose.Model<any> =
   (mongoose.models.Number as any) || mongoose.model("Number", NumberSchema);
@@ -165,4 +165,5 @@ export const PasswordRequest: mongoose.Model<any> =
   (mongoose.models.PasswordRequest as any) ||
   mongoose.model("PasswordRequest", PasswordRequestSchema);
 export const Checkout: mongoose.Model<any> =
-  (mongoose.models.Checkout as any) || mongoose.model("Checkout", CheckoutSchema);
+  (mongoose.models.Checkout as any) ||
+  mongoose.model("Checkout", CheckoutSchema);
