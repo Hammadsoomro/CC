@@ -67,13 +67,53 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
 };
 
 export const authRoutes = {
-  signup: (async (_req, res) => {
-    // Signup disabled when running public mode
-    res.status(410).json({ error: "signup disabled" });
+  signup: (async (req, res) => {
+    await connectDB();
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+      const existing = await User.findOne({ email: email.toLowerCase() });
+      if (existing) {
+        return res.status(409).json({ error: "Email already registered" });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
+      const user = await User.create({
+        email: email.toLowerCase(),
+        passwordHash,
+        role: "main",
+        firstName: "",
+        lastName: "",
+      });
+      const token = signToken({ userId: String(user._id) });
+      res.cookie(COOKIE_NAME, token, cookieOpts);
+      res.json({ token });
+    } catch (e: any) {
+      res.status(500).json({ error: String(e?.message || e) });
+    }
   }) as RequestHandler,
-  login: (async (_req, res) => {
-    // Login disabled when running public mode
-    res.status(410).json({ error: "login disabled" });
+  login: (async (req, res) => {
+    await connectDB();
+    try {
+      const { email, password } = req.body;
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+      const user = await User.findOne({ email: email.toLowerCase() });
+      if (!user) {
+        return res.status(401).json({ error: "Email not registered" });
+      }
+      const match = await bcrypt.compare(password, user.passwordHash);
+      if (!match) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+      const token = signToken({ userId: String(user._id) });
+      res.cookie(COOKIE_NAME, token, cookieOpts);
+      res.json({ token });
+    } catch (e: any) {
+      res.status(500).json({ error: String(e?.message || e) });
+    }
   }) as RequestHandler,
   me: (async (req, res) => {
     await connectDB();
