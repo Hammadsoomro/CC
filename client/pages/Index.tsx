@@ -150,10 +150,10 @@ export default function Index() {
           </p>
           <div className="mt-8 flex items-center justify-center gap-4">
             <Button asChild size="lg">
-              <Link to="/dashboard">Get Started</Link>
+              <Link to="/signup">Get Started</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/dashboard">Login</Link>
+              <Link to="/login">Login</Link>
             </Button>
           </div>
         </section>
