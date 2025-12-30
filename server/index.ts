@@ -111,6 +111,12 @@ export function createServer() {
   // Analytics
   app.get("/api/analytics/overview", requireAuth, analyticsRoutes.overview);
 
+  // Twilio credentials
+  app.get("/api/twilio/credentials", requireAuth, twilioRoutes.getCredentials);
+  app.post("/api/twilio/credentials", requireAuth, twilioRoutes.saveCredentials);
+  app.post("/api/twilio/disconnect", requireAuth, twilioRoutes.disconnect);
+  app.post("/api/twilio/test", requireAuth, twilioRoutes.testConnection);
+
   // Wallet extras
   app.get("/api/wallet/transactions", requireAuth, walletRoutes.transactions);
   app.get("/api/wallet/summary", requireAuth, walletRoutes.summary);
