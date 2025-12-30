@@ -13,6 +13,7 @@ import { analyticsRoutes } from "./analytics";
 import { adminRoutes, requireAdmin, ensureAdminUser } from "./admin";
 import { walletRoutes } from "./wallet";
 import { passwordRequestRoutes } from "./password-request";
+import { twilioRoutes } from "./routes/twilio";
 
 export function createServer() {
   const app = express();
