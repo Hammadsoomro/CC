@@ -32,6 +32,9 @@ const UserSchema = new Schema(
     walletBalance: { type: Number, default: 0 },
     walletLimit: { type: Number },
     plan: { type: String, default: "free" },
+    twilioAccountSid: String,
+    twilioAuthToken: String,
+    twilioPhoneNumber: String,
   },
   { timestamps: true },
 );
