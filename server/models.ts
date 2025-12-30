@@ -13,6 +13,9 @@ export interface IUser {
   walletBalance?: number;
   walletLimit?: number;
   plan?: string;
+  twilioAccountSid?: string;
+  twilioAuthToken?: string;
+  twilioPhoneNumber?: string;
   createdAt: Date;
   updatedAt: Date;
 }
