@@ -113,10 +113,10 @@ export default function Index() {
         </button>
         <nav className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
-            <Link to="/dashboard">Login</Link>
+            <Link to="/login">Login</Link>
           </Button>
           <Button asChild size="sm">
-            <Link to="/dashboard">Get Started</Link>
+            <Link to="/signup">Get Started</Link>
           </Button>
         </nav>
       </header>
