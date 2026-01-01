@@ -72,42 +72,76 @@ export default function Dashboard() {
     })();
   }, []);
 
+  const getMemberName = (member: TeamMember) => {
+    if (member.firstName && member.lastName) {
+      return `${member.firstName} ${member.lastName}`;
+    }
+    return member.email;
+  };
+
   return (
     <div className="p-6 bg-zinc-50 dark:bg-slate-900">
       <div className="flex items-start gap-4">
         <AdsRail position="left" />
         <div className="flex-1 space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Welcome back! Here's your SMS platform overview.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-base">Wallet Balance</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Wallet Balance
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">${data.walletBalance?.toFixed?.(2) ?? "0.00"}</div>
+                <div className="text-3xl font-bold">
+                  ${data.walletBalance?.toFixed?.(2) ?? "0.00"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {summary?.total ? `$${summary.total.toFixed(2)}/month` : "No expenses"}
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-base">Owned Numbers</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  Owned Numbers
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{data.numbersCount ?? 0}</div>
+                <p className="text-xs text-muted-foreground mt-2">Active phone numbers</p>
               </CardContent>
             </Card>
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-base">Total Sent SMS</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Total SMS Sent
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{data.totalSent ?? 0}</div>
+                <p className="text-xs text-muted-foreground mt-2">All time</p>
               </CardContent>
             </Card>
             <Card className="bg-white">
               <CardHeader>
-                <CardTitle className="text-base">Quick Tip</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Team Members
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-sm opacity-90">Use the sidebar selector to change your sending number.</div>
+                <div className="text-3xl font-bold">{teamMembers.length}</div>
+                <p className="text-xs text-muted-foreground mt-2">Sub-accounts</p>
               </CardContent>
             </Card>
           </div>
