@@ -80,7 +80,11 @@ export function createServer() {
   app.post("/api/numbers/add-existing", requireAuth, numberRoutes.addExisting);
 
   // Conversations (protected)
-  app.get("/api/conversations/contacts", requireAuth, conversationRoutes.listContacts);
+  app.get(
+    "/api/conversations/contacts",
+    requireAuth,
+    conversationRoutes.listContacts,
+  );
   app.get(
     "/api/conversations/:phone",
     requireAuth,

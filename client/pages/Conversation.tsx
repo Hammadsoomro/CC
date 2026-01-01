@@ -3,7 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Search, Send, MoreVertical, Plus, Phone, Pin, Trash2 } from "lucide-react";
+import {
+  Search,
+  Send,
+  MoreVertical,
+  Plus,
+  Phone,
+  Pin,
+  Trash2,
+} from "lucide-react";
 import { api } from "@/lib/api";
 import { io, Socket } from "socket.io-client";
 import {
@@ -51,7 +59,9 @@ export default function Conversation() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageBody, setMessageBody] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [availableNumbers, setAvailableNumbers] = useState<AvailableNumber[]>([]);
+  const [availableNumbers, setAvailableNumbers] = useState<AvailableNumber[]>(
+    [],
+  );
   const [selectedFromNumber, setSelectedFromNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAddContact, setShowAddContact] = useState(false);
@@ -82,7 +92,11 @@ export default function Conversation() {
       });
 
       socket.on("sms:new", (data) => {
-        if (selectedContact && (data.from === selectedContact.phoneNumber || data.to === selectedContact.phoneNumber)) {
+        if (
+          selectedContact &&
+          (data.from === selectedContact.phoneNumber ||
+            data.to === selectedContact.phoneNumber)
+        ) {
           setMessages((prev) => [...prev, data.message]);
         }
         playNotificationSound();
@@ -100,7 +114,9 @@ export default function Conversation() {
   };
 
   const playNotificationSound = () => {
-    const audio = new Audio("data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==");
+    const audio = new Audio(
+      "data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==",
+    );
     audio.play().catch(() => {});
   };
 
@@ -115,7 +131,9 @@ export default function Conversation() {
 
   const loadContacts = async () => {
     try {
-      const data = await api<{ contacts: Contact[] }>("/api/conversations/contacts");
+      const data = await api<{ contacts: Contact[] }>(
+        "/api/conversations/contacts",
+      );
       setContacts(data.contacts || []);
     } catch (e) {
       toast.error("Failed to load contacts");
@@ -124,7 +142,9 @@ export default function Conversation() {
 
   const loadAvailableNumbers = async () => {
     try {
-      const data = await api<{ numbers: AvailableNumber[] }>("/api/conversations/available-numbers");
+      const data = await api<{ numbers: AvailableNumber[] }>(
+        "/api/conversations/available-numbers",
+      );
       setAvailableNumbers(data.numbers || []);
       if (data.numbers && data.numbers.length > 0) {
         setSelectedFromNumber(data.numbers[0].phoneNumber);
@@ -143,7 +163,9 @@ export default function Conversation() {
     try {
       setSelectedContact(contact);
       setLoading(true);
-      const data = await api<{ messages: Message[] }>(`/api/conversations/${contact.phoneNumber}`);
+      const data = await api<{ messages: Message[] }>(
+        `/api/conversations/${contact.phoneNumber}`,
+      );
       setMessages(data.messages || []);
     } catch (e) {
       toast.error("Failed to load conversation");
@@ -159,14 +181,17 @@ export default function Conversation() {
     }
 
     try {
-      const newMsg = await api<{ message: Message }>("/api/conversations/send", {
-        method: "POST",
-        body: JSON.stringify({
-          to: selectedContact.phoneNumber,
-          body: messageBody,
-          fromNumber: selectedFromNumber,
-        }),
-      });
+      const newMsg = await api<{ message: Message }>(
+        "/api/conversations/send",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            to: selectedContact.phoneNumber,
+            body: messageBody,
+            fromNumber: selectedFromNumber,
+          }),
+        },
+      );
 
       setMessages((prev) => [...prev, newMsg.message]);
       setMessageBody("");
@@ -200,7 +225,10 @@ export default function Conversation() {
     }
   };
 
-  const updateContact = async (contactId: string, updates: Partial<Contact>) => {
+  const updateContact = async (
+    contactId: string,
+    updates: Partial<Contact>,
+  ) => {
     try {
       await api(`/api/conversations/contact/${contactId}`, {
         method: "PATCH",
@@ -237,9 +265,10 @@ export default function Conversation() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const filteredContacts = contacts.filter((c) =>
-    c.phoneNumber.includes(searchTerm) ||
-    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredContacts = contacts.filter(
+    (c) =>
+      c.phoneNumber.includes(searchTerm) ||
+      (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   const pinnedContacts = filteredContacts.filter((c) => c.pinned);
@@ -284,10 +313,7 @@ export default function Conversation() {
                   />
                 </div>
                 <DialogFooter>
-                  <Button
-                    onClick={upsertContact}
-                    className="w-full"
-                  >
+                  <Button onClick={upsertContact} className="w-full">
                     Add Contact
                   </Button>
                 </DialogFooter>
@@ -388,7 +414,9 @@ export default function Conversation() {
           <>
             <div className="h-14 border-b bg-white flex items-center justify-between px-4 shadow-sm">
               <div>
-                <h3 className="font-semibold">{getContactDisplayName(selectedContact)}</h3>
+                <h3 className="font-semibold">
+                  {getContactDisplayName(selectedContact)}
+                </h3>
                 <p className="text-xs text-muted-foreground">
                   {socketConnected ? "Connected" : "Offline"}
                 </p>
@@ -432,7 +460,9 @@ export default function Conversation() {
                     <select
                       value={selectedContact.folder || "contacts"}
                       onChange={(e) =>
-                        updateContact(selectedContact._id, { folder: e.target.value })
+                        updateContact(selectedContact._id, {
+                          folder: e.target.value,
+                        })
                       }
                       className="w-full border rounded px-2 py-1"
                     >
@@ -476,7 +506,9 @@ export default function Conversation() {
                   <div
                     key={msg._id}
                     className={`flex ${
-                      msg.direction === "outbound" ? "justify-end" : "justify-start"
+                      msg.direction === "outbound"
+                        ? "justify-end"
+                        : "justify-start"
                     }`}
                   >
                     <div
@@ -583,7 +615,11 @@ function ContactItem({
           <DropdownMenuItem onClick={() => onPin(!contact.pinned)}>
             {contact.pinned ? "Unpin" : "Pin"}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onMove(contact.folder === "sales" ? "contacts" : "sales")}>
+          <DropdownMenuItem
+            onClick={() =>
+              onMove(contact.folder === "sales" ? "contacts" : "sales")
+            }
+          >
             Move to {contact.folder === "sales" ? "Contacts" : "Sales"}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onDelete()} className="text-red-600">

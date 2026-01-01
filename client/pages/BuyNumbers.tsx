@@ -117,14 +117,20 @@ export default function BuyNumbers() {
     setError("");
     try {
       const token = localStorage.getItem("jwt");
-      const qs = new URLSearchParams({ country, ...(region ? { region } : {}) });
+      const qs = new URLSearchParams({
+        country,
+        ...(region ? { region } : {}),
+      });
       const res = await fetch(`/api/numbers/search?${qs.toString()}`, {
         credentials: "include",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (res.status === 401 || data.error?.includes("credentials not configured")) {
+        if (
+          res.status === 401 ||
+          data.error?.includes("credentials not configured")
+        ) {
           setError(
             "Twilio credentials not configured. Please connect Twilio in Settings first.",
           );
@@ -145,7 +151,15 @@ export default function BuyNumbers() {
   };
   const purchase = async (phone_number: string) => {
     const token = localStorage.getItem("jwt");
-    const res = await fetch(`/api/numbers/purchase`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ phone_number }) });
+    const res = await fetch(`/api/numbers/purchase`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ phone_number }),
+    });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) {
       toast.error(d.error || "Purchase failed");
@@ -211,7 +225,13 @@ export default function BuyNumbers() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Select value={country} onValueChange={(v) => { setCountry(v); setRegion(""); }}>
+              <Select
+                value={country}
+                onValueChange={(v) => {
+                  setCountry(v);
+                  setRegion("");
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
@@ -224,11 +244,17 @@ export default function BuyNumbers() {
             <div>
               <Select value={region} onValueChange={(v) => setRegion(v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={country === "US" ? "Select state" : "Select province"} />
+                  <SelectValue
+                    placeholder={
+                      country === "US" ? "Select state" : "Select province"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {REGIONS[country].map((r) => (
-                    <SelectItem key={r.code} value={r.code}>{r.name} ({r.code})</SelectItem>
+                    <SelectItem key={r.code} value={r.code}>
+                      {r.name} ({r.code})
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -237,11 +263,20 @@ export default function BuyNumbers() {
           </div>
           <div className="mt-4 space-y-2">
             {error && <div className="text-sm text-red-600">{error}</div>}
-            {!error && results.length === 0 && <div className="text-sm text-muted-foreground">No results yet.</div>}
+            {!error && results.length === 0 && (
+              <div className="text-sm text-muted-foreground">
+                No results yet.
+              </div>
+            )}
             {results.map((num, i) => (
-              <div key={num || i} className="flex items-center justify-between rounded-md border p-3">
+              <div
+                key={num || i}
+                className="flex items-center justify-between rounded-md border p-3"
+              >
                 <div className="text-sm font-medium">{num}</div>
-                <Button size="sm" onClick={() => purchase(num)}>Buy $2.50/mo</Button>
+                <Button size="sm" onClick={() => purchase(num)}>
+                  Buy $2.50/mo
+                </Button>
               </div>
             ))}
           </div>

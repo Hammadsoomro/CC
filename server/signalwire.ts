@@ -78,9 +78,8 @@ export const numberRoutes = {
       res.json({ numbers: uniq });
     } catch (e: any) {
       const msg = String(e?.message || e || "Twilio error");
-      const status = msg.includes("401") || msg.includes("Unauthorized")
-        ? 401
-        : 502;
+      const status =
+        msg.includes("401") || msg.includes("Unauthorized") ? 401 : 502;
       res.status(status).json({ error: msg });
     }
   }) as RequestHandler,
@@ -95,14 +94,14 @@ export const numberRoutes = {
 
       const me = await User.findById(userId).lean();
       if (!me || me.role !== "main") {
-        return res.status(403).json({ error: "Only main accounts can buy numbers" });
+        return res
+          .status(403)
+          .json({ error: "Only main accounts can buy numbers" });
       }
 
       const price = 2.5;
       if ((me.walletBalance ?? 0) < price) {
-        return res
-          .status(400)
-          .json({ error: "Insufficient wallet balance" });
+        return res.status(400).json({ error: "Insufficient wallet balance" });
       }
 
       const user = await getTwilioUser(userId);
@@ -112,8 +111,7 @@ export const numberRoutes = {
         if (raw.startsWith("+")) return raw;
         const digits = raw.replace(/\D/g, "");
         if (digits.length === 10) return "+1" + digits;
-        if (digits.length === 11 && digits.startsWith("1"))
-          return "+" + digits;
+        if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
         return "+" + digits;
       };
       const e164 = toE164(phone_number);
@@ -132,7 +130,10 @@ export const numberRoutes = {
         },
       );
 
-      await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
+      await User.updateOne(
+        { _id: userId },
+        { $inc: { walletBalance: -price } },
+      );
       await NumberModel.create({
         phoneNumber: e164,
         country: "US",
@@ -174,7 +175,10 @@ export const numberRoutes = {
     await connectDB();
     const userId = (req as any).userId as string;
     const me = await User.findById(userId).lean();
-    const q = me?.role === "sub" ? { assignedToUserId: userId } : { ownerUserId: userId };
+    const q =
+      me?.role === "sub"
+        ? { assignedToUserId: userId }
+        : { ownerUserId: userId };
     const numbers = await NumberModel.find(q).lean();
     res.json({ numbers });
   }) as RequestHandler,
@@ -184,9 +188,11 @@ export const numberRoutes = {
     const { numberId, subUserId } = req.body || {};
     const number = await NumberModel.findById(numberId);
     if (!number) return res.status(404).json({ error: "Number not found" });
-    if (String(number.ownerUserId) !== String(userId)) return res.status(403).json({ error: "Not owner" });
+    if (String(number.ownerUserId) !== String(userId))
+      return res.status(403).json({ error: "Not owner" });
     const sub = await User.findById(subUserId);
-    if (!sub || String(sub.parentUserId) !== String(userId)) return res.status(400).json({ error: "Invalid sub-account" });
+    if (!sub || String(sub.parentUserId) !== String(userId))
+      return res.status(400).json({ error: "Invalid sub-account" });
     number.assignedToUserId = sub._id;
     await number.save();
     res.json({ ok: true });
@@ -197,7 +203,8 @@ export const numberRoutes = {
     const { numberId } = req.body || {};
     const number = await NumberModel.findById(numberId);
     if (!number) return res.status(404).json({ error: "Number not found" });
-    if (String(number.ownerUserId) !== String(userId)) return res.status(403).json({ error: "Not owner" });
+    if (String(number.ownerUserId) !== String(userId))
+      return res.status(403).json({ error: "Not owner" });
     number.assignedToUserId = undefined;
     await number.save();
     res.json({ ok: true });
@@ -207,9 +214,13 @@ export const numberRoutes = {
     await connectDB();
     const userId = (req as any).userId as string;
     const { phone_number, country } = req.body || {};
-    if (!phone_number) return res.status(400).json({ error: "phone_number required" });
+    if (!phone_number)
+      return res.status(400).json({ error: "phone_number required" });
     const me = await User.findById(userId).lean();
-    if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can add numbers" });
+    if (!me || me.role !== "main")
+      return res
+        .status(403)
+        .json({ error: "Only main accounts can add numbers" });
     const toE164 = (n: string) => {
       const raw = String(n).trim();
       if (raw.startsWith("+")) return raw;
@@ -221,7 +232,11 @@ export const numberRoutes = {
     const e164 = toE164(phone_number);
     const exists = await NumberModel.findOne({ phoneNumber: e164 }).lean();
     if (exists) return res.status(400).json({ error: "Number already exists" });
-    await NumberModel.create({ phoneNumber: e164, country: (country || "US").toUpperCase(), ownerUserId: userId });
+    await NumberModel.create({
+      phoneNumber: e164,
+      country: (country || "US").toUpperCase(),
+      ownerUserId: userId,
+    });
     res.json({ ok: true });
   }) as RequestHandler,
 };

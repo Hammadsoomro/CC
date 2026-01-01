@@ -43,8 +43,7 @@ export function setupSocketIO(httpServer: Server) {
 
     socket.join(userId);
 
-    socket.on("disconnect", () => {
-    });
+    socket.on("disconnect", () => {});
 
     socket.on("typing", (data) => {
       socket.to(userId).emit("typing", data);

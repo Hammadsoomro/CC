@@ -40,7 +40,9 @@ export default function ActiveNumbers() {
   const [numbers, setNumbers] = useState<PhoneNumber[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedNumber, setSelectedNumber] = useState<PhoneNumber | null>(null);
+  const [selectedNumber, setSelectedNumber] = useState<PhoneNumber | null>(
+    null,
+  );
   const [selectedMemberId, setSelectedMemberId] = useState("");
 
   useEffect(() => {
@@ -137,10 +139,10 @@ export default function ActiveNumbers() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{unassignedNumbers.length}</div>
-              <p className="text-sm text-muted-foreground">
-                Ready to assign
-              </p>
+              <div className="text-3xl font-bold">
+                {unassignedNumbers.length}
+              </div>
+              <p className="text-sm text-muted-foreground">Ready to assign</p>
             </CardContent>
           </Card>
         </div>
@@ -195,9 +197,7 @@ export default function ActiveNumbers() {
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>
-                            Assign {number.phoneNumber}
-                          </DialogTitle>
+                          <DialogTitle>Assign {number.phoneNumber}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
@@ -240,9 +240,7 @@ export default function ActiveNumbers() {
                           >
                             Cancel
                           </Button>
-                          <Button onClick={assignNumber}>
-                            Assign Number
-                          </Button>
+                          <Button onClick={assignNumber}>Assign Number</Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>

@@ -104,7 +104,9 @@ export default function Dashboard() {
                   ${data.walletBalance?.toFixed?.(2) ?? "0.00"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {summary?.total ? `$${summary.total.toFixed(2)}/month` : "No expenses"}
+                  {summary?.total
+                    ? `$${summary.total.toFixed(2)}/month`
+                    : "No expenses"}
                 </p>
               </CardContent>
             </Card>
@@ -116,8 +118,12 @@ export default function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{data.numbersCount ?? 0}</div>
-                <p className="text-xs text-muted-foreground mt-2">Active phone numbers</p>
+                <div className="text-3xl font-bold">
+                  {data.numbersCount ?? 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Active phone numbers
+                </p>
               </CardContent>
             </Card>
             <Card className="bg-white">
@@ -141,7 +147,9 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{teamMembers.length}</div>
-                <p className="text-xs text-muted-foreground mt-2">Sub-accounts</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Sub-accounts
+                </p>
               </CardContent>
             </Card>
           </div>

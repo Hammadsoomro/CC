@@ -10,7 +10,9 @@ export const conversationRoutes = {
       const user = await User.findById(userId).lean();
       if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-      const contacts = await Contact.find({ userId }).sort({ pinned: -1, createdAt: -1 }).lean();
+      const contacts = await Contact.find({ userId })
+        .sort({ pinned: -1, createdAt: -1 })
+        .lean();
       res.json({ contacts });
     } catch (e: any) {
       res.status(500).json({ error: String(e?.message || e) });
@@ -27,7 +29,10 @@ export const conversationRoutes = {
       const user = await User.findById(userId).lean();
       if (!user) return res.status(401).json({ error: "Unauthorized" });
 
-      let contact = await Contact.findOne({ userId, phoneNumber: phone }).lean();
+      let contact = await Contact.findOne({
+        userId,
+        phoneNumber: phone,
+      }).lean();
 
       const messages = await Message.find({
         $or: [
@@ -50,7 +55,8 @@ export const conversationRoutes = {
       await connectDB();
       const userId = (req as any).userId;
       const { phoneNumber, name } = req.body;
-      if (!phoneNumber) return res.status(400).json({ error: "Phone required" });
+      if (!phoneNumber)
+        return res.status(400).json({ error: "Phone required" });
 
       const contact = await Contact.findOneAndUpdate(
         { userId, phoneNumber },
@@ -91,7 +97,10 @@ export const conversationRoutes = {
       const userId = (req as any).userId;
       const { contactId } = req.params;
 
-      const contact = await Contact.findOneAndDelete({ _id: contactId, userId });
+      const contact = await Contact.findOneAndDelete({
+        _id: contactId,
+        userId,
+      });
       if (!contact) return res.status(404).json({ error: "Contact not found" });
 
       res.json({ ok: true });
@@ -118,7 +127,8 @@ export const conversationRoutes = {
       let twilioUser = user;
       if (user.role === "sub" && user.parentUserId) {
         const parent = await User.findById(user.parentUserId).lean();
-        if (!parent) return res.status(400).json({ error: "Parent user not found" });
+        if (!parent)
+          return res.status(400).json({ error: "Parent user not found" });
         twilioUser = parent;
       }
 
