@@ -253,13 +253,26 @@ export default function AppShell() {
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
                         <NavLink
+                          to="/active-numbers"
+                          className={({ isActive }) =>
+                            isActive ? "data-[active=true]" : undefined
+                          }
+                        >
+                          <Phone className="mr-2" />
+                          <span>Active Numbers</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink
                           to="/sub-accounts"
                           className={({ isActive }) =>
                             isActive ? "data-[active=true]" : undefined
                           }
                         >
                           <Users className="mr-2" />
-                          <span>Sub-Accounts</span>
+                          <span>Team Management</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
