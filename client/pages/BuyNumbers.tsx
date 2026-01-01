@@ -155,7 +155,31 @@ export default function BuyNumbers() {
     if (allowed) search();
   }, [allowed]);
 
-  if (!allowed) return null;
+  if (!allowed) {
+    return (
+      <div className="p-6 max-w-3xl">
+        <Card>
+          <CardHeader>
+            <CardTitle>Buy New Number</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+            {!error && (
+              <div className="rounded-md bg-yellow-50 p-4">
+                <p className="text-sm text-yellow-800">
+                  Loading account information...
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-3xl">
@@ -164,7 +188,10 @@ export default function BuyNumbers() {
           <CardTitle>Buy New Number</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">US $2.50/month, Canada $2.50/month. Only main accounts can buy numbers.</div>
+          <div className="text-sm text-muted-foreground">
+            US $2.50/month, Canada $2.50/month. Only main accounts can buy
+            numbers.
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Select value={country} onValueChange={(v) => { setCountry(v); setRegion(""); }}>
