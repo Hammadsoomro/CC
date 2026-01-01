@@ -84,6 +84,7 @@ const REGIONS: Record<string, { code: string; name: string }[]> = {
 };
 
 export default function BuyNumbers() {
+  const navigate = useNavigate();
   const [country, setCountry] = useState("US");
   const [results, setResults] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
