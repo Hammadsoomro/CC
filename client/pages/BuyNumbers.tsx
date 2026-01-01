@@ -86,16 +86,22 @@ export default function BuyNumbers() {
   const checkRole = async () => {
     try {
       const token = localStorage.getItem("jwt");
-      const r = await fetch("/api/auth/me", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      if (!r.ok) throw new Error("unauth");
+      const r = await fetch("/api/auth/me", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!r.ok) {
+        setError("Authentication failed. Please log in again.");
+        return;
+      }
       const d = await r.json();
       if (d?.user?.role !== "main") {
-        window.location.href = "/dashboard";
+        setError("Only main accounts can buy numbers");
         return;
       }
       setAllowed(true);
-    } catch {
-      window.location.href = "/login";
+    } catch (e) {
+      setError("Failed to verify account access");
     }
   };
 
