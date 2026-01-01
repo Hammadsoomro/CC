@@ -43,6 +43,7 @@ const App = () => (
             <Route path="conversation" element={<Conversation />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="buy-numbers" element={<BuyNumbers />} />
+            <Route path="active-numbers" element={<ActiveNumbers />} />
             <Route path="sub-accounts" element={<SubAccounts />} />
             <Route path="pricing" element={<Pricing />} />
             <Route path="settings" element={<Settings />} />
