@@ -89,45 +89,84 @@ export const numberRoutes = {
       await connectDB();
       const userId = (req as any).userId as string;
       const { phone_number } = req.body || {};
-      if (!phone_number) return res.status(400).json({ error: "phone_number required" });
+      if (!phone_number) {
+        return res.status(400).json({ error: "phone_number required" });
+      }
 
       const me = await User.findById(userId).lean();
-      if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can buy numbers" });
+      if (!me || me.role !== "main") {
+        return res.status(403).json({ error: "Only main accounts can buy numbers" });
+      }
 
       const price = 2.5;
-      if ((me.walletBalance ?? 0) < price) return res.status(400).json({ error: "Insufficient wallet balance" });
+      if ((me.walletBalance ?? 0) < price) {
+        return res
+          .status(400)
+          .json({ error: "Insufficient wallet balance" });
+      }
+
+      const user = await getTwilioUser(userId);
 
       const toE164 = (n: string) => {
         const raw = String(n).trim();
         if (raw.startsWith("+")) return raw;
         const digits = raw.replace(/\D/g, "");
         if (digits.length === 10) return "+1" + digits;
-        if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
+        if (digits.length === 11 && digits.startsWith("1"))
+          return "+" + digits;
         return "+" + digits;
       };
       const e164 = toE164(phone_number);
 
-      let resp: any;
-      try {
-        resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ number: e164 }) });
-      } catch (err) {
-        resp = await swFetch(`/phone_numbers`, { method: "POST", body: JSON.stringify({ phone_number: e164 }) });
-      }
+      const body = new URLSearchParams();
+      body.set("PhoneNumber", e164);
+      body.set("FriendlyName", `Number for SMS`);
+
+      const resp = await twilioFetch(
+        `/IncomingPhoneNumbers.json`,
+        user.twilioAccountSid,
+        user.twilioAuthToken,
+        {
+          method: "POST",
+          body: body.toString(),
+        },
+      );
 
       await User.updateOne({ _id: userId }, { $inc: { walletBalance: -price } });
-      await NumberModel.create({ phoneNumber: e164, country: resp.country || "US", ownerUserId: userId, providerId: resp.id });
+      await NumberModel.create({
+        phoneNumber: e164,
+        country: "US",
+        ownerUserId: userId,
+        providerId: resp.sid,
+      });
+
       try {
         const { Transaction } = await import("./models");
-        await Transaction.create({ userId, type: "purchase", amount: price, meta: { kind: "number", phoneNumber: e164, providerId: resp?.id } });
+        await Transaction.create({
+          userId,
+          type: "purchase",
+          amount: price,
+          meta: {
+            kind: "number",
+            phoneNumber: e164,
+            providerId: resp?.sid,
+          },
+        });
       } catch {}
 
       res.json({ ok: true });
     } catch (e: any) {
-      const raw = String(e?.message || e || "SignalWire error");
-      const status = raw.includes("401") ? 401 : raw.includes("422") ? 400 : 502;
-      const msg = raw.includes("21212") || raw.toLowerCase().includes("invalid")
-        ? "Invalid number format or unavailable. Please choose another number/region."
-        : raw;
+      const raw = String(e?.message || e || "Twilio error");
+      const status =
+        raw.includes("401") || raw.includes("Unauthorized")
+          ? 401
+          : raw.includes("422")
+            ? 400
+            : 502;
+      const msg =
+        raw.includes("21212") || raw.toLowerCase().includes("invalid")
+          ? "Invalid number format or unavailable. Please choose another number/region."
+          : raw;
       res.status(status).json({ error: msg });
     }
   }) as RequestHandler,
