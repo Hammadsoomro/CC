@@ -1,20 +1,74 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AdsRail } from "@/components/layout/AdsRail";
-
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import { Users, TrendingUp, Phone, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface TeamMember {
+  _id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  plan?: string;
+}
+
 export default function Dashboard() {
-  const [data, setData] = useState<any>({ walletBalance: 0, numbersCount: 0, totalSent: 0, recent: [] });
+  const [data, setData] = useState<any>({
+    walletBalance: 0,
+    numbersCount: 0,
+    totalSent: 0,
+    recent: [],
+  });
   const [summary, setSummary] = useState<any>(null);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
       const token = localStorage.getItem("jwt");
-      const r = await fetch("/api/analytics/overview", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      const r = await fetch("/api/analytics/overview", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (r.ok) setData(await r.json());
-      const s = await fetch("/api/wallet/summary", { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+
+      const s = await fetch("/api/wallet/summary", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       if (s.ok) setSummary(await s.json());
+
+      const t = await fetch("/api/sub-accounts", {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (t.ok) {
+        const td = await t.json();
+        setTeamMembers(td.users || []);
+      }
+
+      const mockChartData = [
+        { day: "Mon", sent: 12, received: 8 },
+        { day: "Tue", sent: 19, received: 14 },
+        { day: "Wed", sent: 15, received: 11 },
+        { day: "Thu", sent: 25, received: 18 },
+        { day: "Fri", sent: 22, received: 16 },
+        { day: "Sat", sent: 18, received: 12 },
+        { day: "Sun", sent: 10, received: 7 },
+      ];
+      setChartData(mockChartData);
     })();
   }, []);
 
