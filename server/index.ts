@@ -74,6 +74,39 @@ export function createServer() {
   app.post("/api/numbers/unassign", requireAuth, numberRoutes.unassign);
   app.post("/api/numbers/add-existing", requireAuth, numberRoutes.addExisting);
 
+  // Conversations (protected)
+  app.get("/api/conversations/contacts", requireAuth, conversationRoutes.listContacts);
+  app.get(
+    "/api/conversations/:phone",
+    requireAuth,
+    conversationRoutes.getConversation,
+  );
+  app.post(
+    "/api/conversations/contact",
+    requireAuth,
+    conversationRoutes.upsertContact,
+  );
+  app.patch(
+    "/api/conversations/contact/:contactId",
+    requireAuth,
+    conversationRoutes.updateContact,
+  );
+  app.delete(
+    "/api/conversations/contact/:contactId",
+    requireAuth,
+    conversationRoutes.deleteContact,
+  );
+  app.post(
+    "/api/conversations/send",
+    requireAuth,
+    conversationRoutes.sendMessage,
+  );
+  app.get(
+    "/api/conversations/available-numbers",
+    requireAuth,
+    conversationRoutes.getAvailableNumbers,
+  );
+
   // Contacts (protected)
   app.get("/api/contacts", requireAuth, contactRoutes.list);
   app.post("/api/contacts", requireAuth, contactRoutes.create);
