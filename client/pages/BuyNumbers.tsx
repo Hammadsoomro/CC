@@ -110,10 +110,22 @@ export default function BuyNumbers() {
     try {
       const token = localStorage.getItem("jwt");
       const qs = new URLSearchParams({ country, ...(region ? { region } : {}) });
-      const res = await fetch(`/api/numbers/search?${qs.toString()}`, { credentials: "include", headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      const res = await fetch(`/api/numbers/search?${qs.toString()}`, {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Unable to load numbers. Check SignalWire credentials.");
+        if (res.status === 401 || data.error?.includes("credentials not configured")) {
+          setError(
+            "Twilio credentials not configured. Please connect Twilio in Settings first.",
+          );
+        } else {
+          setError(
+            data.error ||
+              "Unable to load available numbers. Please check your Twilio credentials.",
+          );
+        }
         setResults([]);
         return;
       }
