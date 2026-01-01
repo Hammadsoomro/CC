@@ -62,6 +62,7 @@ const ContactSchema = new Schema(
     name: String,
     pinned: { type: Boolean, default: false },
     favorite: { type: Boolean, default: false },
+    folder: { type: String, default: "contacts", enum: ["contacts", "sales"] },
   },
   { timestamps: true },
 );
