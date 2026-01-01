@@ -60,6 +60,10 @@ export function createServer() {
   // Public password-change request
   app.post("/api/password-requests", passwordRequestRoutes.create);
 
+  // Twilio webhooks (public)
+  app.post("/api/webhooks/twilio/incoming-sms", twilioWebhooks.incomingSms);
+  app.post("/api/webhooks/twilio/message-status", twilioWebhooks.messageStatus);
+
   // Ensure admin user exists if env configured
   ensureAdminUser().catch(() => {});
 
