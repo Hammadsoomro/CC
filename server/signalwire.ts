@@ -2,45 +2,37 @@ import type { RequestHandler } from "express";
 import { NumberModel, User } from "./models";
 import { connectDB } from "./db";
 
-const spaceUrl = process.env.SIGNALWIRE_SPACE_URL;
-const apiToken = process.env.SIGNALWIRE_TOKEN; // PT...
-const projectId = process.env.SIGNALWIRE_PROJECT_ID;
-
-async function swFetch(path: string, init?: RequestInit) {
-  if (!spaceUrl || !apiToken || !projectId) throw new Error("SignalWire env not set");
-  const url = `https://${spaceUrl}/api/relay/rest${path}`;
-  const basic = Buffer.from(`${projectId}:${apiToken}`).toString("base64");
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      Authorization: `Basic ${basic}`,
-      "X-SignalWire-Project": projectId,
-      "Content-Type": "application/json",
-      ...(init?.headers as any),
-    },
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`SignalWire error ${res.status}: ${err}`);
+async function getTwilioUser(userId: string) {
+  let user = await User.findById(userId).lean();
+  if (!user) throw new Error("User not found");
+  if (user.role === "sub" && user.parentUserId) {
+    user = await User.findById(user.parentUserId).lean();
   }
-  return res.json();
+  if (!user?.twilioAccountSid || !user?.twilioAuthToken) {
+    throw new Error("Twilio credentials not configured");
+  }
+  return user;
 }
 
-async function swLaml(path: string, init?: RequestInit) {
-  if (!spaceUrl || !apiToken || !projectId) throw new Error("SignalWire env not set");
-  const url = `https://${spaceUrl}/api/laml/2010-04-01/Accounts/${projectId}${path}`;
-  const basic = Buffer.from(`${projectId}:${apiToken}`).toString("base64");
+async function twilioFetch(
+  path: string,
+  accountSid: string,
+  authToken: string,
+  init?: RequestInit,
+) {
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}${path}`;
+  const auth = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
   const res = await fetch(url, {
     ...init,
     headers: {
-      Authorization: `Basic ${basic}`,
-      "X-SignalWire-Project": projectId,
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
       ...(init?.headers as any),
     },
   });
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`SignalWire error ${res.status}: ${err}`);
+    throw new Error(`Twilio error ${res.status}: ${err}`);
   }
   return res.json();
 }
