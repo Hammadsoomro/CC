@@ -21,6 +21,7 @@ import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ActiveNumbers from "./pages/ActiveNumbers";
 
 const queryClient = new QueryClient();
 
