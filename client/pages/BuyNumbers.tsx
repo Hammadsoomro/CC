@@ -172,8 +172,17 @@ export default function BuyNumbers() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="rounded-md bg-red-50 p-4">
+              <div className="rounded-md bg-red-50 p-4 space-y-3">
                 <p className="text-sm text-red-800">{error}</p>
+                {error.includes("Twilio") && (
+                  <Button
+                    size="sm"
+                    onClick={() => navigate("/settings")}
+                    className="w-full"
+                  >
+                    Go to Settings
+                  </Button>
+                )}
               </div>
             )}
             {!error && (
