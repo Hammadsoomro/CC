@@ -1,178 +1,596 @@
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
-import ContactsPanel, {
-  ContactItem,
-} from "@/components/conversation/ContactsPanel";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Search, Send, MoreVertical, Plus, Phone, Pin, Trash2 } from "lucide-react";
+import { api } from "@/lib/api";
+import { io, Socket } from "socket.io-client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface Contact {
+  _id: string;
+  phoneNumber: string;
+  name?: string;
+  pinned?: boolean;
+  folder?: string;
+}
+
+interface Message {
+  _id: string;
+  from: string;
+  to: string;
+  body: string;
+  direction: "inbound" | "outbound";
+  status?: string;
+  createdAt: string;
+}
+
+interface AvailableNumber {
+  _id: string;
+  phoneNumber: string;
+}
 
 export default function Conversation() {
-  const [message, setMessage] = useState("");
-  const [current, setCurrent] = useState<ContactItem | null>(null);
-  const [history, setHistory] = useState<
-    { fromMe: boolean; body: string; time: string }[]
-  >([]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageBody, setMessageBody] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [availableNumbers, setAvailableNumbers] = useState<AvailableNumber[]>([]);
+  const [selectedFromNumber, setSelectedFromNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [contactToEdit, setContactToEdit] = useState<Contact | null>(null);
+  const [editName, setEditName] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const toE164 = (n: string) => {
-    const raw = String(n || "").trim();
-    if (!raw) return "";
-    if (raw.startsWith("+")) return raw.replace(/\s|\(|\)|-/g, "");
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length === 10) return "+1" + digits;
-    if (digits.length === 11 && digits.startsWith("1")) return "+" + digits;
-    return "+" + digits;
+  useEffect(() => {
+    initSocket();
+    loadContacts();
+    loadAvailableNumbers();
+    loadFromNumber();
+  }, []);
+
+  const initSocket = async () => {
+    try {
+      const token = localStorage.getItem("jwt");
+      const socket = io(window.location.origin, {
+        auth: { token },
+      });
+
+      socket.on("connect", () => {
+        setSocketConnected(true);
+      });
+
+      socket.on("sms:new", (data) => {
+        if (selectedContact && (data.from === selectedContact.phoneNumber || data.to === selectedContact.phoneNumber)) {
+          setMessages((prev) => [...prev, data.message]);
+        }
+        playNotificationSound();
+        showBrowserNotification(data);
+      });
+
+      socket.on("disconnect", () => {
+        setSocketConnected(false);
+      });
+
+      socketRef.current = socket;
+    } catch (e) {
+      console.error("Socket connection error:", e);
+    }
+  };
+
+  const playNotificationSound = () => {
+    const audio = new Audio("data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==");
+    audio.play().catch(() => {});
+  };
+
+  const showBrowserNotification = (data: any) => {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("New SMS", {
+        body: `From ${data.from}: ${data.message.body}`,
+        icon: "/favicon.ico",
+      });
+    }
+  };
+
+  const loadContacts = async () => {
+    try {
+      const data = await api<{ contacts: Contact[] }>("/api/conversations/contacts");
+      setContacts(data.contacts || []);
+    } catch (e) {
+      toast.error("Failed to load contacts");
+    }
+  };
+
+  const loadAvailableNumbers = async () => {
+    try {
+      const data = await api<{ numbers: AvailableNumber[] }>("/api/conversations/available-numbers");
+      setAvailableNumbers(data.numbers || []);
+      if (data.numbers && data.numbers.length > 0) {
+        setSelectedFromNumber(data.numbers[0].phoneNumber);
+      }
+    } catch (e) {
+      toast.error("Failed to load available numbers");
+    }
+  };
+
+  const loadFromNumber = () => {
+    const saved = localStorage.getItem("fromNumber");
+    if (saved) setSelectedFromNumber(saved);
+  };
+
+  const loadConversation = async (contact: Contact) => {
+    try {
+      setSelectedContact(contact);
+      setLoading(true);
+      const data = await api<{ messages: Message[] }>(`/api/conversations/${contact.phoneNumber}`);
+      setMessages(data.messages || []);
+    } catch (e) {
+      toast.error("Failed to load conversation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!messageBody.trim() || !selectedContact || !selectedFromNumber) {
+      toast.error("Select a contact and sending number");
+      return;
+    }
+
+    try {
+      const newMsg = await api<{ message: Message }>("/api/conversations/send", {
+        method: "POST",
+        body: JSON.stringify({
+          to: selectedContact.phoneNumber,
+          body: messageBody,
+          fromNumber: selectedFromNumber,
+        }),
+      });
+
+      setMessages((prev) => [...prev, newMsg.message]);
+      setMessageBody("");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to send message");
+    }
+  };
+
+  const upsertContact = async () => {
+    if (!newContactPhone) {
+      toast.error("Phone number required");
+      return;
+    }
+
+    try {
+      await api("/api/conversations/contact", {
+        method: "POST",
+        body: JSON.stringify({
+          phoneNumber: newContactPhone,
+          name: newContactName,
+        }),
+      });
+
+      loadContacts();
+      setShowAddContact(false);
+      setNewContactName("");
+      setNewContactPhone("");
+      toast.success("Contact added");
+    } catch (e) {
+      toast.error("Failed to add contact");
+    }
+  };
+
+  const updateContact = async (contactId: string, updates: Partial<Contact>) => {
+    try {
+      await api(`/api/conversations/contact/${contactId}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+
+      loadContacts();
+      if (selectedContact && selectedContact._id === contactId) {
+        setSelectedContact({ ...selectedContact, ...updates });
+      }
+      toast.success("Contact updated");
+    } catch (e) {
+      toast.error("Failed to update contact");
+    }
+  };
+
+  const deleteContact = async (contactId: string) => {
+    try {
+      await api(`/api/conversations/contact/${contactId}`, {
+        method: "DELETE",
+      });
+
+      loadContacts();
+      if (selectedContact && selectedContact._id === contactId) {
+        setSelectedContact(null);
+      }
+      toast.success("Contact deleted");
+    } catch (e) {
+      toast.error("Failed to delete contact");
+    }
   };
 
   useEffect(() => {
-    const run = async () => {
-      if (!current) {
-        setHistory([]);
-        return;
-      }
-      const token = localStorage.getItem("jwt");
-      const from = localStorage.getItem("fromNumber") || "";
-      if (!from) {
-        setHistory([]);
-        return;
-      }
-      const qs = new URLSearchParams({
-        number: from,
-        with: current.phoneNumber,
-      }).toString();
-      const r = await fetch(`/api/messages/history?${qs}` as any, {
-        credentials: "include",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!r.ok) {
-        setHistory([]);
-        return;
-      }
-      const d = await r.json();
-      const fromE = toE164(from);
-      const items = (d.messages || []).map((m: any) => ({
-        fromMe: m.from === fromE,
-        body: m.body,
-        time: m.createdAt,
-      }));
-      setHistory(items);
-    };
-    run();
-  }, [current]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  useEffect(() => {
-    const onNew = (e: any) => {
-      const d = e?.detail || {};
-      if (!current) return;
-      const from = localStorage.getItem("fromNumber") || "";
-      const fromE = toE164(from);
-      const other = toE164(current.phoneNumber);
-      const a = toE164(String(d.from || ""));
-      const b = toE164(String(d.to || ""));
-      const belongs =
-        (a === fromE && b === other) || (b === fromE && a === other);
-      if (!belongs) return;
-      const fromMe = a === fromE;
-      setHistory((h) => [
-        ...h,
-        {
-          fromMe,
-          body: String(d.body || ""),
-          time: d.createdAt || new Date().toISOString(),
-        },
-      ]);
-      if (!fromMe) {
-        const key = a; // inbound sender
-        window.dispatchEvent(
-          new CustomEvent("sms:read", { detail: { phone: key, count: 1 } }),
-        );
-      }
-    };
-    window.addEventListener("sms:new", onNew as any);
-    return () => window.removeEventListener("sms:new", onNew as any);
-  }, [current]);
+  const filteredContacts = contacts.filter((c) =>
+    c.phoneNumber.includes(searchTerm) ||
+    (c.name && c.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
-  const send = async () => {
-    const token = localStorage.getItem("jwt");
-    const from = localStorage.getItem("fromNumber") || undefined;
-    if (!current || !message.trim()) return;
-    const res = await fetch("/api/messages/send", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ to: current.phoneNumber, body: message, from }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      import("sonner").then(({ toast }) =>
-        toast.error(data.error || "Failed to send"),
-      );
-      return;
+  const pinnedContacts = filteredContacts.filter((c) => c.pinned);
+  const unpinnedContacts = filteredContacts.filter((c) => !c.pinned);
+
+  const getContactDisplayName = (contact: Contact) => {
+    return contact.name || contact.phoneNumber;
+  };
+
+  const requestNotificationPermission = () => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
     }
-    const now = new Date().toISOString();
-    setHistory((h) => [...h, { fromMe: true, body: message, time: now }]);
-    setMessage("");
   };
 
   return (
-    <div className="h-[calc(100svh-3.5rem)] grid grid-cols-12">
-      <aside className="col-span-3 border-r flex flex-col">
-        <ContactsPanel onSelect={setCurrent} />
-      </aside>
-      <section className="col-span-9 flex flex-col">
-        <div className="border-b p-3 text-sm text-muted-foreground">
-          {current
-            ? `Conversation with ${current.name || current.phoneNumber}`
-            : "Select a contact"}
-        </div>
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-3">
-            {!current && (
-              <div className="text-sm text-muted-foreground">
-                No conversation selected.
-              </div>
-            )}
-            {history.map((m, i) => (
-              <div
-                key={i}
-                className={`max-w-[65%] ${m.fromMe ? "ml-auto text-right" : ""}`}
-              >
-                <div
-                  className={`rounded-lg p-2 ${m.fromMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}
-                >
-                  {m.body}
+    <div className="h-[calc(100vh-3.5rem)] flex gap-0">
+      <div className="w-80 border-r bg-white flex flex-col">
+        <div className="p-4 border-b space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold">Messages</h2>
+            <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="ghost">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Contact</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <Input
+                    placeholder="Name (optional)"
+                    value={newContactName}
+                    onChange={(e) => setNewContactName(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Phone number"
+                    value={newContactPhone}
+                    onChange={(e) => setNewContactPhone(e.target.value)}
+                  />
                 </div>
-                <div className="mt-1 text-[10px] text-muted-foreground">
-                  {new Date(m.time).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
-              </div>
-            ))}
+                <DialogFooter>
+                  <Button
+                    onClick={upsertContact}
+                    className="w-full"
+                  >
+                    Add Contact
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
-        </ScrollArea>
-        <div className="border-t p-3 flex items-center gap-2">
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message"
-            onKeyDown={async (e) => {
-              if (e.key === "Enter" && message.trim() && current) {
-                await send();
-              }
-            }}
-          />
-          <Button
-            onClick={async () => current && (await send())}
-            disabled={!current}
-          >
-            Send
-          </Button>
+
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search contacts..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
-      </section>
+
+        <div className="flex-1 overflow-y-auto">
+          {pinnedContacts.length > 0 && (
+            <div>
+              <div className="px-4 py-2 text-xs font-semibold text-muted-foreground">
+                Pinned
+              </div>
+              {pinnedContacts.map((contact) => (
+                <ContactItem
+                  key={contact._id}
+                  contact={contact}
+                  isSelected={selectedContact?._id === contact._id}
+                  onSelect={() => loadConversation(contact)}
+                  onEdit={(name) => {
+                    setContactToEdit(contact);
+                    setEditName(name || "");
+                  }}
+                  onPin={(pinned) => updateContact(contact._id, { pinned })}
+                  onDelete={() => deleteContact(contact._id)}
+                  onMove={(folder) => updateContact(contact._id, { folder })}
+                />
+              ))}
+            </div>
+          )}
+
+          <Tabs defaultValue="contacts" className="w-full">
+            <TabsList className="w-full rounded-none border-b">
+              <TabsTrigger value="contacts" className="flex-1">
+                Contacts
+              </TabsTrigger>
+              <TabsTrigger value="sales" className="flex-1">
+                Sales
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="contacts" className="m-0">
+              {unpinnedContacts
+                .filter((c) => c.folder !== "sales")
+                .map((contact) => (
+                  <ContactItem
+                    key={contact._id}
+                    contact={contact}
+                    isSelected={selectedContact?._id === contact._id}
+                    onSelect={() => loadConversation(contact)}
+                    onEdit={(name) => {
+                      setContactToEdit(contact);
+                      setEditName(name || "");
+                    }}
+                    onPin={(pinned) => updateContact(contact._id, { pinned })}
+                    onDelete={() => deleteContact(contact._id)}
+                    onMove={(folder) => updateContact(contact._id, { folder })}
+                  />
+                ))}
+            </TabsContent>
+
+            <TabsContent value="sales" className="m-0">
+              {unpinnedContacts
+                .filter((c) => c.folder === "sales")
+                .map((contact) => (
+                  <ContactItem
+                    key={contact._id}
+                    contact={contact}
+                    isSelected={selectedContact?._id === contact._id}
+                    onSelect={() => loadConversation(contact)}
+                    onEdit={(name) => {
+                      setContactToEdit(contact);
+                      setEditName(name || "");
+                    }}
+                    onPin={(pinned) => updateContact(contact._id, { pinned })}
+                    onDelete={() => deleteContact(contact._id)}
+                    onMove={(folder) => updateContact(contact._id, { folder })}
+                  />
+                ))}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col bg-gray-50">
+        {selectedContact ? (
+          <>
+            <div className="h-14 border-b bg-white flex items-center justify-between px-4 shadow-sm">
+              <div>
+                <h3 className="font-semibold">{getContactDisplayName(selectedContact)}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {socketConnected ? "Connected" : "Offline"}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedFromNumber}
+                  onChange={(e) => {
+                    setSelectedFromNumber(e.target.value);
+                    localStorage.setItem("fromNumber", e.target.value);
+                  }}
+                  className="text-xs border rounded px-2 py-1"
+                >
+                  {availableNumbers.map((n) => (
+                    <option key={n._id} value={n.phoneNumber}>
+                      {n.phoneNumber}
+                    </option>
+                  ))}
+                </select>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditName(selectedContact.name || "")}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Edit Contact</DialogTitle>
+                    </DialogHeader>
+                    <Input
+                      placeholder="Contact name"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                    />
+                    <select
+                      value={selectedContact.folder || "contacts"}
+                      onChange={(e) =>
+                        updateContact(selectedContact._id, { folder: e.target.value })
+                      }
+                      className="w-full border rounded px-2 py-1"
+                    >
+                      <option value="contacts">Contacts</option>
+                      <option value="sales">Sales</option>
+                    </select>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => deleteContact(selectedContact._id)}
+                        className="text-red-600"
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          updateContact(selectedContact._id, {
+                            name: editName || undefined,
+                          });
+                        }}
+                      >
+                        Save
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground">Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-muted-foreground">No messages yet</p>
+                </div>
+              ) : (
+                messages.map((msg) => (
+                  <div
+                    key={msg._id}
+                    className={`flex ${
+                      msg.direction === "outbound" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-xs px-4 py-2 rounded-lg ${
+                        msg.direction === "outbound"
+                          ? "bg-blue-500 text-white"
+                          : "bg-white border"
+                      }`}
+                    >
+                      <p className="text-sm">{msg.body}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {new Date(msg.createdAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="h-20 border-t bg-white p-4 flex items-end gap-2">
+              <Input
+                placeholder="Type a message..."
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+              />
+              <Button
+                size="icon"
+                onClick={sendMessage}
+                className="flex-shrink-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <div className="text-center space-y-2">
+              <p>Select a contact to start messaging</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={requestNotificationPermission}
+              >
+                Enable Notifications
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ContactItem({
+  contact,
+  isSelected,
+  onSelect,
+  onEdit,
+  onPin,
+  onDelete,
+  onMove,
+}: {
+  contact: Contact;
+  isSelected: boolean;
+  onSelect: () => void;
+  onEdit: (name?: string) => void;
+  onPin: (pinned: boolean) => void;
+  onDelete: () => void;
+  onMove: (folder: string) => void;
+}) {
+  return (
+    <div
+      className={`border-b px-4 py-3 cursor-pointer hover:bg-gray-100 flex items-center justify-between ${
+        isSelected ? "bg-blue-50 border-l-4 border-l-blue-500" : ""
+      }`}
+      onClick={onSelect}
+    >
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold truncate">
+          {contact.name || contact.phoneNumber}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">
+          {contact.phoneNumber}
+        </p>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <Button size="sm" variant="ghost">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(contact.name)}>
+            Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onPin(!contact.pinned)}>
+            {contact.pinned ? "Unpin" : "Pin"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onMove(contact.folder === "sales" ? "contacts" : "sales")}>
+            Move to {contact.folder === "sales" ? "Contacts" : "Sales"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDelete()} className="text-red-600">
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
