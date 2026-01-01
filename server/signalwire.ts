@@ -43,49 +43,44 @@ export const numberRoutes = {
       await connectDB();
       const userId = (req as any).userId as string;
       const me = await User.findById(userId).lean();
-      if (!me || me.role !== "main") return res.status(403).json({ error: "Only main accounts can search numbers" });
+      if (!me || me.role !== "main") {
+        return res
+          .status(403)
+          .json({ error: "Only main accounts can search numbers" });
+      }
 
+      const user = await getTwilioUser(userId);
       const country = String((req.query as any)?.country || "US").toUpperCase();
       const limit = String((req.query as any)?.limit || "10");
       const region = String((req.query as any)?.region || "").toUpperCase();
-      const areaCode = String((req.query as any)?.areaCode || "").replace(/[^0-9]/g, "");
 
-      let numbers: string[] = [];
-      try {
-        const params = new URLSearchParams({ limit, country, capabilities: "SMS" } as any);
-        if (region) params.set("region", region);
-        if (areaCode) params.set("area_code", areaCode);
-        const data: any = await swFetch(`/phone_numbers/search?${params.toString()}`);
-        const candidates: any[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data?.items)
-          ? data.items
-          : Array.isArray(data?.phone_numbers)
-          ? data.phone_numbers
-          : [];
-        numbers = candidates
-          .map((r: any) => r?.phone_number || r?.number || r?.e164 || (typeof r === "string" ? r : null))
-          .filter((n: any) => typeof n === "string");
-      } catch {}
+      const params = new URLSearchParams({
+        SmsEnabled: "true",
+        PageSize: limit,
+      } as any);
+      if (region) params.set("InRegion", region);
 
-      if (!Array.isArray(numbers) || numbers.length === 0) {
-        const params = new URLSearchParams({ SmsEnabled: "true", PageSize: String(limit) } as any);
-        if (region) params.set("InRegion", region);
-        if (areaCode) params.set("AreaCode", areaCode);
-        const laml = await swLaml(`/AvailablePhoneNumbers/${country}/Local.json?${params.toString()}`);
-        const items: any[] = Array.isArray(laml?.available_phone_numbers) ? laml.available_phone_numbers : Array.isArray(laml) ? laml : [];
-        numbers = items
-          .map((r: any) => r?.phone_number || r?.PhoneNumber || r?.friendly_name || null)
-          .filter((n: any) => typeof n === "string");
-      }
+      const path = `/AvailablePhoneNumbers/${country}/Local.json?${params.toString()}`;
+      const data = await twilioFetch(
+        path,
+        user.twilioAccountSid,
+        user.twilioAuthToken,
+      );
+
+      const items: any[] = Array.isArray(data?.available_phone_numbers)
+        ? data.available_phone_numbers
+        : [];
+      const numbers = items
+        .map((r: any) => r?.phone_number || null)
+        .filter((n: any) => typeof n === "string");
 
       const uniq = Array.from(new Set(numbers.filter(Boolean)));
       res.json({ numbers: uniq });
     } catch (e: any) {
-      const msg = String(e?.message || e || "SignalWire error");
-      const status = msg.includes("401") ? 401 : 502;
+      const msg = String(e?.message || e || "Twilio error");
+      const status = msg.includes("401") || msg.includes("Unauthorized")
+        ? 401
+        : 502;
       res.status(status).json({ error: msg });
     }
   }) as RequestHandler,
